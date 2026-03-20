@@ -1,6 +1,3 @@
-# AS-PARADISE
-IT IS FULLY MODDED BOMBSQUAD SCRIPT API 9 WITH MODDED POWERUPS WITH SINGLE PLAYER BOT AND WITH DISCORD LIVE STATS AND CHATS AND COMPLAINT SYSTEM BY TEAM PARADISE 
-
 # Bombsquad-Ballistica-Modded-Server
 
 Modded server scripts to host ballistica (BombSquad) server. Running on BS1.7.53 (API 9)
@@ -124,4 +121,3 @@ Here you can ban players, mute them, or disable their kick votes.
 - New Splitted Team in game score screen.
 - New final score screen , StumbledScoreScreen.
 - other small small feature improvement here there find yourself.
- 
