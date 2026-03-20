@@ -13,7 +13,7 @@
    "Complete": false
   },
   "Free Loader": {
-   "Complete": true
+   "Complete": false
   },
   "Gold Miner": {
    "Complete": false
@@ -103,7 +103,7 @@
    "Complete": false
   },
   "Team Player": {
-   "Complete": true
+   "Complete": false
   },
   "The Great Wall": {
    "Complete": false
@@ -175,13 +175,6 @@
   }
  },
  "Campaigns": {},
- "CloudVals": {
-  "gct": [
-   "asyncio.trsock.TransportSocket",
-   "asyncio.selector_events._SelectorSocketTransport",
-   "TimeoutError"
-  ]
- },
  "Custom Team Colors": [
   [
    0.8,
@@ -195,32 +188,28 @@
   ]
  ],
  "Custom Team Names": [
-  "Ashx",
-  "Sehu"
+  "ladoo",
+  "barfi"
  ],
  "Default Player Profiles": {
-  "Client Input Device #1": "__account__",
-  "Client Input Device #2": "__account__",
-  "Client Input Device #3": "__account__",
-  "Client Input Device #4": "__account__",
-  "Client Input Device #5": "__account__",
-  "Client Input Device #6": "\u4edd\u309eM\u00e2Xx\u3005\u3003",
-  "Client Input Device #7": "__account__"
+  "Client Input Device #1": "__account__"
  },
  "FFA Series Length": 24,
- "Fleet Zone Ping Last Flush Time": 1773580261,
+ "Fleet Zone Ping Last Flush Time": 1744468224,
  "Fleet Zone Pings": {
   "prod": {
-   "delhi.v4": 26.392625601242926,
-   "hyderabad.v4": 14.367387964932014,
-   "mumbai.v4": 0.8896952605020101
+   "bangkok.v4": 102.49190199829172,
+   "delhi.v4": 37.58927411432573,
+   "hyderabad.v4": 164.64317070459595,
+   "kolkata.v4": 70.30842701968504,
+   "mumbai.v4": 111.18231678717792
   }
  },
  "Free-for-All Playlist Randomize": true,
- "Free-for-All Playlist Selection": "THANKS FOR USING MY SCRIPT BY ASHX",
+ "Free-for-All Playlist Selection": "__default__",
  "Free-for-All Playlists": {},
  "Idle Exit Minutes": 20.0,
- "Local Account Name": "Server24732222",
+ "Local Account Name": "Server21364126",
  "PPM Settings": {
   "Healing Damage PTG": 72,
   "Powers Gravity": true,
@@ -266,19 +255,10 @@
   }
  },
  "Plugins": {
-  "baExPowerups (1).ExPowerups": {
-   "enabled": true
-  },
-  "bascenev1lib.actor.powerupbox.Plugin": {
+  "create_server.EntryPoint": {
    "enabled": true
   },
   "custom_hooks.modSetup": {
-   "enabled": true
-  },
-  "ender.EnderServerPlugin": {
-   "enabled": true
-  },
-  "ender.byBordd": {
    "enabled": true
   },
   "plugins.Init": {
@@ -296,35 +276,7 @@
  "Team Tournament Playlist Selection": "\u041a\u043e\u043f\u0438\u044f \u0421\u0442\u0430\u043d\u0434\u0430\u0440\u0442\u043d\u044b\u0439 \u043f\u043b\u0435\u0439-\u043b\u0438\u0441\u0442 \u0440\u0435\u0436\u0438\u043c\u0430 \u041a\u043e\u043c\u0430\u043d\u0434\u044b",
  "Team Tournament Playlists": {},
  "Teams Series Length": 7,
- "ex_pow_settings": {
-  "T784_bomb": 3,
-  "Xfactor_bomb": 3,
-  "attraction_bomb": 3,
-  "blackhole_bomb": 1,
-  "cosmic_bomb": 3,
-  "electro-bombs": 2,
-  "gloo_wall_bomb": 3,
-  "nitrogen_bomb": 3,
-  "s.m.b_bomb": 3,
-  "stun_bomb": 3,
-  "super_shield": 2,
-  "superhuman_healing": 1,
-  "supplies": 3,
-  "teleport_bomb": 2
- },
- "ex_settings": {
-  "allow_powerups_in_bots": false,
-  "antibomb": false,
-  "explosion_on_death": false,
-  "powerup_animations": "none",
-  "powerup_time": 8,
-  "powerups_with_name": false,
-  "powerups_with_shield": false,
-  "poweup_shield_glow": 1.0,
-  "show_time": false,
-  "sound_when_exploding": false
- },
- "launchCount": 1123,
+ "launchCount": 107,
  "lc14173": 1,
  "lc14292": 1
 }
