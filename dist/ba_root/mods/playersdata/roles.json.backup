@@ -1,0 +1,109 @@
+{
+    "owner": {
+        "tag": "\\cowner\\c",
+        "tagcolor": [
+            1,
+            0.6,
+            0.4
+        ],
+        "commands": [
+            "ALL"
+        ],
+        "ids": [
+            "pb-IF4SUFgHMw==",
+            "pb-JiNJARBaXEFBVF9HFkNXXF1EF0ZaRlZE",
+            "pb-IF4TVWwZUQ==",
+            "pb-IF4SVW9dEg==",
+            "pb-IF5XUm9eAg==",
+            "pb-IF4gVHUtVg==",
+            "pb-IF5RU1JcJw==",
+            "pb-IF42UWQgMw==",
+            "pb-IF4-XmYDHQ==",
+            "pb-IF43UEkdUw==",
+            "pb-IF4IUGo-KA=="
+        ]
+    },
+    "admin": {
+        "tag": "\ue043admin\ue043",
+        "tagcolor": [
+            1,
+            1,
+            1
+        ],
+        "commands": [
+            "createrole",
+            "end"
+        ],
+        "ids": [
+            "pb-IF4TVWwZUQ==",
+            "pb-IF48UnoYFw==",
+            "pb-IF4TUWtZJA=="
+        ]
+    },
+    "vip": {
+        "tag": "vip",
+        "tagcolor": [
+            1,
+            1,
+            1
+        ],
+        "commands": [],
+        "ids": [
+            "pb-IF5dXmJcNg==",
+            "pb-IF4TUWtZJA==",
+            "pb-IF43VFg8Vg=="
+        ]
+    },
+    "smoothy": {
+        "tag": "smoothy",
+        "tagcolor": [
+            1,
+            1,
+            1
+        ],
+        "commands": [],
+        "ids": []
+    },
+    "pros": {
+        "tag": "pros",
+        "tagcolor": [
+            1,
+            1,
+            1
+        ],
+        "commands": [],
+        "ids": []
+    },
+    "top5": {
+        "tag": "top5",
+        "tagcolor": [
+            1,
+            1,
+            1
+        ],
+        "commands": [],
+        "ids": [
+            "pb-IF4-XmYDHQ==",
+            "pb-IF4SUFgHMw==",
+            "pb-IF4OXhYbDQ==",
+            "pb-IF4gVHUtVg==",
+            "pb-IF4zUVMlKw=="
+        ]
+    },
+    "bypass-warn": {
+        "tag": "",
+        "tagcolor": [
+            1,
+            1,
+            1
+        ],
+        "commands": [],
+        "ids": [
+            "pb-IF5XUm9eAg==",
+            "pb-IF43VUwlAg==",
+            "pb-IF4iVUc5Cg==",
+            "pb-IF4vNnMJ",
+            "pb-IF4TVWwZUQ=="
+        ]
+    }
+}
