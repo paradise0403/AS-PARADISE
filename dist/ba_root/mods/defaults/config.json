@@ -1,0 +1,44 @@
+{
+   "party_name":"BombSquad Community Server",
+   "party_is_public":true,
+   "authenticate_clients":true,
+   "admins":[
+      "pb-yOuRAccOuNtIdHErE",
+      "pb-aNdMayBeAnotherHeRE"
+   ],
+   "enable_default_kick_voting":true,
+   "port":43210,
+   "max_party_size":6,
+   "session_max_players_override":8,
+   "session_type":"ffa",
+   "playlist_code":12345,
+   "playlist_shuffle":true,
+   "auto_balance_teams":true,
+   "enable_telnet":false,
+   "teams_series_length":7,
+   "ffa_series_length":24,
+   "stats_url":"https://discord.gg/ucyaesh",
+   "clean_exit_minutes":60,
+   "unclean_exit_minutes":90,
+   "idle_exit_minutes":20,
+   "show_tutorial":false,
+   "team_names":[
+      "ladoo",
+      "barfi"
+   ],
+   "team_colors":[
+      [
+         0.8,
+         0.0,
+         0.6
+      ],
+      [
+         0,
+         1,
+         0.8
+      ]
+   ],
+   "enable_queue":true,
+   "protocol_version":35,
+   "player_rejoin_cooldown":10.0
+}
