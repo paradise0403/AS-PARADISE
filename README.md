@@ -35,7 +35,7 @@ tmux new -s 43210
 ```
 Download server files.
 ```
-git clone --depth=1 https://github.com/paradise0403/AS-PARADISE.git
+git clone https://github.com/paradise0403/AS-PARADISE.git &&
 cd AS-PARADISE
 ```
 Now edit config.yaml in root dir change server name, port, admins, playlist, team name etc..
