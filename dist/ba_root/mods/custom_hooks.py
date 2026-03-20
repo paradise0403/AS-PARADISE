@@ -199,8 +199,7 @@ def bootstraping():
 
     import_discord_bot()
     import_games()
-    import_dual_team_score()
-    import live_bridge
+    import_dual_team_score() 
     logger.log("Server started")
 
 
