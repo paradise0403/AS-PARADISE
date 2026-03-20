@@ -8,7 +8,11 @@ from spazmod import tag  # your tag.py
 # --- CORRECT PATHS ---
 BASE_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../'))  # script/dist
 CUSTOM_JSON_PATH = os.path.join(BASE_PATH, 'baroot', 'mods', 'playersdata', 'custom.json')
-DATA_PATH = os.path.join(BASE_PATH, 'coin_data.json')  # coin_data.json in dist
+try:
+    storage_dir = babase.app.env.python_directory_storage
+    DATA_PATH = os.path.join(storage_dir, 'coin_data.json')
+except Exception:
+    DATA_PATH = './coin_data.json'
 
 # --- SEND FUNCTION ---
 def get_send_func():
@@ -89,22 +93,38 @@ def handle_buy_tag(arguments, client_id, account_id):
 
     prices = {1:25, 2:45, 3:40, 4:50, 5:60}
     total_cost = len(tag_text) * prices.get(anim_id, 25)
-
-    if not deduct_coins(account_id, total_cost):
-        send(f"Purchase Failed! You need {total_cost} coins", client_id)
-        return
+    print(f'total cost = {total_cost}')
+    
+    if total_cost > 0:
+        if not deduct_coins(account_id, total_cost):
+            send(f"Purchase Failed! You need {total_cost} coins", client_id)
+            return
 
     # Save/overwrite tag
-    save_tag(account_id, tag_text, anim_id)
+    #save_tag(account_id, tag_text, anim_id)
 
     # Apply immediately if player has spawned
     try:
         session = bs.get_foreground_host_session()
         for sp in session.sessionplayers:
             if sp.get_v1_account_id() == account_id:
-                spaz = getattr(sp, 'spaz', None)
-                if spaz and hasattr(spaz, 'node'):
-                    apply_tag_to_spaz(spaz, account_id)
+                #'''
+                from playersdata import pdata
+                custom = pdata.get_custom()
+                custom["customtag"][account_id] = {
+                    "tag": tag_text,
+                    "anim": anim_id
+                }
+                pdata.CacheData.custom = custom
+                pdata.commit_c()
+                print('success added taggy!')
+                #'''
+                #import coin_system
+                #bank = coin_system.get_coins(account_id)
+                #print(bank)
+                #fire = get_coins(account_id)
+                #print(f'how much coins u have is ---> {fire}')
+        print('adding a tag?')
     except Exception as e:
         print("Error applying tag immediately:", e)
 
@@ -147,6 +167,54 @@ def handle_shop_command(arguments, client_id):
         show_tags_shop(client_id)
     else:
         send(f"\ue043 Category '{arguments[0]}' not found!", client_id)
+ 
+
+import json
+import os
+import babase
+
+PLAYERS_DATA_PATH = os.path.join(
+    babase.env()["python_directory_user"], "playersdata" + os.sep
+)
+
+CUSTOM_FILE = PLAYERS_DATA_PATH + "custom.json"
+
+
+def add_custom_tag(account_id, tag, anim=1):
+    # Ensure directory exists
+    os.makedirs(PLAYERS_DATA_PATH, exist_ok=True)
+    
+    #print(os.path.exists(CUSTOM_FILE))
+
+    # Load existing data
+    if os.path.exists(CUSTOM_FILE):
+        with open(CUSTOM_FILE, "r") as f:
+            try:
+                data = json.load(f)
+            except Exception:
+                data = {}
+    else:
+        data = {}
+
+    # Ensure structure
+    if "customtag" not in data:
+        data["customtag"] = {}
+
+    # Add/update entry
+    data["customtag"][account_id] = {
+        "tag": tag,
+        "anim": anim
+    }
+
+    # Save file
+    with open(CUSTOM_FILE, "w") as f:
+        json.dump(data, f, indent=4)
+
+    print(f"[TAG] Added/Updated: {account_id} -> {tag} (anim {anim})")
+    #print("[DEBUG] Current customtag data:")
+    #print(data["customtag"])
+    print("WRITING TO:", CUSTOM_FILE)
+    print(os.path.abspath(CUSTOM_FILE))
 
 # --- SPAWN HOOK ---
 class TagApplier(bs.Plugin):
