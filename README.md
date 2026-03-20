@@ -1,11 +1,6 @@
-# Bombsquad-Ballistica-Modded-Server
+# AS-PARADISE
 
 Modded server scripts to host ballistica (BombSquad) server. Running on BS1.7.53 (API 9)
-
-``
-Migrated from API 7 TO API 9 , this might be unstable and missing some features. Use API 7 from this tag
-``
-[API7 ](https://github.com/imayushsaini/Bombsquad-Ballistica-Modded-Server/releases/tag/1.7.26)
 
 # Prerequisites
 - Basic knowledge of Linux
@@ -40,8 +35,8 @@ tmux new -s 43210
 ```
 Download server files.
 ```
-git clone --depth=1 https://github.com/imayushsaini/Bombsquad-Ballistica-Modded-Server
-cd Bombsquad-Ballistica-Modded-Server
+git clone --depth=1 https://github.com/paradise0403/AS-PARADISE.git
+cd AS-PARADISE
 ```
 Now edit config.yaml in root dir change server name, port, admins, playlist, team name etc..
 Making the server files executable.
