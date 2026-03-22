@@ -36,8 +36,8 @@ class _Entry:
         self._height = (32.0 if height is None else height) * self._scale
         self._bar_width = 2.0 * self._scale
         self._bar_height = 32.0 * self._scale
-        self._bar_tex = self._backing_tex = bs.gettexture('bar')
-        self._cover_tex = bs.gettexture('white')
+        self._bar_tex = self._backing_tex = bs.gettexture('uiAtlas')
+        self._cover_tex = bs.gettexture('chestIconEmpty')
         self._mesh = bs.getmesh('meterTransparent')
         self._pos: Sequence[float] | None = None
         self._flash_timer: bs.Timer | None = None
