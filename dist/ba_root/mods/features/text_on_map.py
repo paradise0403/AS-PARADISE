@@ -44,7 +44,7 @@ class textonmap:
             ("TOP 10 - EFFECTS + TAG", (1, 1, 1)),
             ("TOP 20 - TAG", (1, 1, 1)),
             ("JOIN DISCORD", (1, 1, 1)),
-            ("💫BHARAT SUPER SMASH💫" , (1, 1, 0)),
+            ("💫YOUR SERVER NAME💫" , (1, 1, 0)),
             ("BY TEAM PARADISE" , (1, 0, 1)),
             ("❣️AS PARADISE❣️" , (0, 1, 1))
         ]
@@ -116,7 +116,7 @@ class textonmap:
             node.color = (r, g, b)
 
     def clay_text(self):
-        self.display_text = u"BHARAT SUPER SMASH"
+        self.display_text = u"YOUR SERVER NAME"
         self.display_position = (0, 200)
         scale_val = 0.4
         spacing = 20
@@ -155,7 +155,7 @@ class textonmap:
             'scale': 0.6, 'position': (start_x + 5, base_y + 15), 'color': (1, 1, 1)
         })
         self._owner_name_nodes = []
-        for i, ch in enumerate("ASHX & SENPAI"):
+        for i, ch in enumerate("ASHX & SEHU"):
             n = bs.newnode('text', attrs={
                 'text': ch, 'flatness': 1.0, 'h_align': 'left', 'v_attach': 'bottom', 'h_attach': 'left',
                 'scale': 0.6, 'position': (start_x + 105 + i * spacing, base_y + 15)
