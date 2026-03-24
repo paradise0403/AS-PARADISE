@@ -20,7 +20,7 @@ from stats import mystats
 Commands = [
     'me', 'list', 'uniqeid', 'ping', 'wallet', 'daily', 'pay', 
     'topcasher', 'scoretocash', 'cashtoscore', 'pet', 'custompet', 
-    'comp', 'help', 'shop', 'buytag'
+    'comp', 'help', 'shop', 'buytag', 'buyeffect'
 ]
 
 CommandAliases = [
@@ -29,13 +29,12 @@ CommandAliases = [
 ]
 
 def ExcelCommand(command, arguments, clientid, accountid):
-    """Main Entry Point for Commands"""
-    
-    # 0. Help Command
+
+    # 0. Help
     if command in ['help', 'h', 'cmds']:
         handle_help_cmd(arguments, clientid)
 
-    # 1. Stats & Info Commands
+    # 1. Stats
     elif command in ['me', 'stats', 'score', 'rank', 'myself']:
         fetch_send_stats(accountid, clientid)
     
@@ -46,9 +45,12 @@ def ExcelCommand(command, arguments, clientid, accountid):
         accountid_request(arguments, clientid, accountid)
     
     elif command in ['ping']:
-        get_ping(arguments, clientid)
+        if arguments and arguments[0] == 'all':
+            pingall(clientid)
+        else:
+            get_ping(arguments, clientid)
 
-    # 2. Economy / Coin System Commands
+    # 2. Economy
     elif command in ['daily']:
         import coin_system
         send(f"🪙 {coin_system.claim_daily(accountid)[1]}", clientid)
@@ -65,69 +67,124 @@ def ExcelCommand(command, arguments, clientid, accountid):
     elif command in ['cashtoscore', 'ctos']:
         handle_cash_to_score(arguments, accountid, clientid)
 
-    # 3. Shop System Commands (FORCED PATH LOADING)
-    elif command in ['shop', 'buytag']:
+    # 3. SHOP (UPDATED)
+    elif command in ['shop', 'buytag', 'buyeffect']:
         try:
             mod_dir = os.path.dirname(os.path.abspath(__file__))
             shop_path = os.path.join(mod_dir, "shop.py")
-            
-            # This bypasses the "no known parent package" error entirely
+
             spec = importlib.util.spec_from_file_location("shop_module", shop_path)
             shop = importlib.util.module_from_spec(spec)
             spec.loader.exec_module(shop)
-            
+
             if command == 'shop':
                 shop.handle_shop_command(arguments, clientid)
-            else:
+
+            elif command == 'buytag':
                 shop.handle_buy_tag(arguments, clientid, accountid)
+
+            elif command == 'buyeffect':
+                shop.handle_buy_effect(arguments, clientid, accountid)
+
         except Exception as e:
             print(f"CRITICAL SHOP ERROR: {e}")
             send(f"\ue043 Shop Load Fail: {str(e)}", clientid)
 
-    # 4. Pet System
+    # 4. PET
     elif command in ['pet', 'custompet', 'p']:
         try:
             from spazmod import ashx_pets
             target_id = int(arguments[0]) if (arguments and arguments[0].isdigit()) else clientid
+
             def do_pet():
-                try: ashx_pets.handle_pet_command([f'/{command}'] + arguments, target_id)
-                except Exception as e: print(f"Pet Logic Error: {e}")
+                try:
+                    ashx_pets.handle_pet_command([f'/{command}'] + arguments, target_id)
+                except Exception as e:
+                    print(f"Pet Logic Error: {e}")
+
             babase.pushcall(do_pet)
             send("🐾 Processing Pet...", clientid)
+
         except Exception as e:
             send(f"Pet Error: {e}", clientid)
 
-    # 5. Complaint System
+    # 5. Complaint
     elif command in ['comp']:
         submit_complaint_cmd(arguments, clientid, accountid)
 
-# --- HELPER FUNCTIONS ---
 
+# ---------------- HELP ----------------
 def handle_help_cmd(args, cid):
     help_list = [
         ("/me", "View your stats/rank"),
         ("/shop", "Open the server shop"),
-        ("/buytag", "Buy Tag: /buytag <text> <num>"),
+        ("/buytag", "Buy Tag"),
+        ("/buyeffect", "Buy Effect"),
         ("/daily", "Claim daily coins"),
-        ("/pay", "Pay: /pay <amt> <id>"),
-        ("/top", "Shows Richest players"),
+        ("/pay", "Pay coins"),
+        ("/top", "Rich list"),
         ("/stoc", "Score to Cash"),
         ("/ctos", "Cash to Score"),
-        ("/pet", "Spawn pet: /pet <id>"),
-        ("/comp", "Complaint /comp <id> <reason>")
+        ("/pet", "Spawn pet"),
+        ("/comp", "Complaint")
     ]
-    try: page = int(args[0]) if (args and args[0].isdigit()) else 1
-    except: page = 1
+
+    try:
+        page = int(args[0]) if (args and args[0].isdigit()) else 1
+    except:
+        page = 1
+
     total_pages = (len(help_list) + 4) // 5
+
     if page > total_pages or page < 1:
         send(f"\ue043 Invalid page! 1-{total_pages}", cid)
         return
+
     start = (page - 1) * 5
     msg = f"\ue043 --- HELP PAGE {page}/{total_pages} ---\n"
+
     for cmd, desc in help_list[start:start+5]:
         msg += f"\ue043 {cmd} : {desc}\n"
+
     send(msg, cid)
 
+
+# ---------------- PING ALL ----------------
+def pingall(clientid):
+    p = u'{0:^16}{1:^34}ms'
+    seprator = '\n______________________________\n'
+
+    msg = p.format('Name', 'Ping (ms)') + seprator
+    session = bs.get_foreground_host_session()
+
+    for player in session.sessionplayers:
+        msg += p.format(
+            player.getname(icon=True),
+            _bascenev1.get_client_ping(int(player.inputdevice.client_id))
+        ) + "\n"
+
+    send(msg, clientid)
+
+
+# ---------------- LIST ----------------
+def list_players(clientid):
+    p = u'{0:^16}{1:^15}{2:^10}'
+    seprator = '\n______________________________\n'
+
+    msg = p.format('Name', 'Client ID', 'Player ID') + seprator
+    session = bs.get_foreground_host_session()
+
+    for index, player in enumerate(session.sessionplayers):
+        msg += p.format(
+            player.getname(icon=False),
+            player.inputdevice.client_id,
+            index
+        ) + "\n"
+
+    send(msg, clientid)
+
+
+# ---------------- OTHER (UNCHANGED) ----------------
 def handle_top_cashers(clientid):
     import coin_system
     top = coin_system.get_top_cashers(8)
@@ -176,32 +233,28 @@ def handle_pay(args, cid, aid):
         coin_system.add_coins(aid, -amt)
         coin_system.add_coins(target_aid, amt)
         send(f"\ue043 Paid {amt} \ue01d to ID {tid}!", cid)
-    else: send("\ue043 Player not found!", cid)
+    else:
+        send("\ue043 Player not found!", cid)
 
 def stats_func(ac_id, clientid):
     import coin_system
     d, c = mystats.get_stats_by_id(ac_id), coin_system.get_coins(ac_id)
-    if d: reply = f"\ue043| Name: {d['name']}\n\ue043| ID: {d['aid']}\n\ue043| Coins: {c} \ue01d\n\ue043| Rank: {d['rank']}\n\ue043| Score: {d['scores']}\n\ue043| Kills: {d['kills']}\n\ue043| Deaths: {d['deaths']}"
-    else: reply = f"\ue043| Balance: {c} \ue01d\n\ue043| No stats yet!"
+    if d:
+        reply = f"\ue043| Name: {d['name']}\n\ue043| ID: {d['aid']}\n\ue043| Coins: {c} \ue01d\n\ue043| Rank: {d['rank']}\n\ue043| Score: {d['scores']}\n\ue043| Kills: {d['kills']}\n\ue043| Deaths: {d['deaths']}"
+    else:
+        reply = f"\ue043| Balance: {c} \ue01d\n\ue043| No stats yet!"
     _babase.pushcall(Call(send, reply, clientid), from_other_thread=True)
 
 def fetch_send_stats(ac_id, clientid):
     _thread.start_new_thread(stats_func, (ac_id, clientid,))
 
 def get_ping(args, cid):
-    if not args or args == ['']: send(f"Ping: {bs.get_client_ping(cid)}ms", cid)
-    elif args[0] == 'all':
-        session, msg = bs.get_foreground_host_session(), "--- PINGS ---\n"
-        for p in session.sessionplayers: msg += f"{p.getname(icon=True)}: {bs.get_client_ping(int(p.inputdevice.client_id))}ms\n"
-        send(msg, cid)
-
-def list_players(cid):
-    session, msg = bs.get_foreground_host_session(), "Name | Client ID\n"
-    for p in session.sessionplayers: msg += f"{p.getname(icon=False)} | {p.inputdevice.client_id}\n"
-    send(msg, cid)
+    if not args:
+        send(f"Ping: {bs.get_client_ping(cid)}ms", cid)
 
 def accountid_request(args, cid, aid):
-    if not args or args == ['']: send(f"Your ID: {aid}", cid)
+    if not args:
+        send(f"Your ID: {aid}", cid)
     else:
         try:
             session = bs.get_foreground_host_session()
@@ -210,7 +263,8 @@ def accountid_request(args, cid, aid):
                 if p.inputdevice.client_id == target_id:
                     send(f"{p.getname()}: {p.get_v1_account_id()}", cid)
                     return
-        except: pass 
+        except:
+            pass
 
 def submit_complaint_cmd(arguments, clientid, accountid):
     try:

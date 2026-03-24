@@ -130,6 +130,96 @@ def handle_buy_tag(arguments, client_id, account_id):
 
     send(f"Success! Tag '{tag_text}' purchased and applied!\nCost: {total_cost} coins", client_id)
 
+def handle_buy_effect(arguments, client_id, account_id):
+    send = get_send_func()
+
+    if not arguments:
+        send("Usage: /buyeffect <effect_name>", client_id)
+        return
+
+    effect_name = arguments[0].lower()
+
+    # VALID EFFECTS LIST (same as your system)
+    valid_effects = [
+        "spark", "sparkground",
+        "sweat", "sweatground",
+        "distortion",
+        "glow",
+        "shine", "highlightshine", "rainbow",
+        "scorch",
+        "ice", "iceground",
+        "slime", "metal", "splinter",
+        "fairydust",
+        "firespark",
+        "noeffect"
+    ]
+
+    if effect_name not in valid_effects:
+        send(f"Invalid effect: {effect_name}", client_id)
+        return
+
+    # 💰 PRICE SYSTEM (800–2500 range)
+    prices = {
+        "spark": 800,
+        "sparkground": 850,
+        "sweat": 900,
+        "sweatground": 950,
+        "distortion": 1200,
+        "glow": 1500,
+        "shine": 1100,
+        "highlightshine": 1150,
+        "rainbow": 2000,
+        "scorch": 1400,
+        "ice": 1200,
+        "iceground": 1250,
+        "slime": 1300,
+        "metal": 1400,
+        "splinter": 1350,
+        "fairydust": 1600,
+        "firespark": 2500,
+        "noeffect": 0
+    }
+
+    cost = prices.get(effect_name, 1000)
+
+    if cost > 0:
+        if not deduct_coins(account_id, cost):
+            send(f"Not enough coins! Need {cost}", client_id)
+            return
+
+    try:
+        from playersdata import pdata
+
+        custom = pdata.get_custom()
+
+        if "customeffects" not in custom:
+            custom["customeffects"] = {}
+
+        current = custom["customeffects"].get(account_id, [])
+
+        # fix if string
+        if isinstance(current, str):
+            current = [current]
+
+        # avoid duplicate
+        if effect_name in current:
+            send(f"You already have '{effect_name}'", client_id)
+            return
+
+        current.append(effect_name)
+
+        custom["customeffects"][account_id] = current
+
+        pdata.CacheData.custom = custom
+        pdata.commit_c()
+
+    except Exception as e:
+        print("Effect error:", e)
+        send("Error applying effect!", client_id)
+        return
+
+    send(f"Effect '{effect_name}' purchased!\nCost: {cost}", client_id)
+
 # --- SHOP DISPLAY ---
 def show_main_shop(client_id):
     send = get_send_func()
@@ -158,6 +248,32 @@ def show_tags_shop(client_id):
     )
     send(msg, client_id)
 
+def show_effects_shop(client_id):
+    send = get_send_func()
+    msg = (
+        "\ue043 ----- EFFECTS ----- \ue043\n"
+        "1. Spark - 800 \ue01d\n"
+        "2. Spark Ground - 850 \ue01d\n"
+        "3. Sweat - 900 \ue01d\n"
+        "4. Sweat Ground - 950 \ue01d\n"
+        "5. Distortion - 1200 \ue01d\n"
+        "6. Glow - 1500 \ue01d\n"
+        "7. Shine - 1100 \ue01d\n"
+        "8. Highlight Shine - 1150 \ue01d\n"
+        "9. Rainbow - 2000 \ue01d\n"
+        "10. Scorch - 1400 \ue01d\n"
+        "11. Ice - 1200 \ue01d\n"
+        "12. Ice Ground - 1250 \ue01d\n"
+        "13. Slime - 1300 \ue01d\n"
+        "14. Metal - 1400 \ue01d\n"
+        "15. Splinter - 1350 \ue01d\n"
+        "16. Fairy Dust - 1600 \ue01d\n"
+        "17. Fire Spark - 2500 \ue01d\n\n"
+        "\ue047 Pro Tip: Use /buyeffect <effect_name>\n"
+        "\ue048 Note: Effects are applied on next spawn."
+    )
+    send(msg, client_id)
+
 # --- SHOP COMMAND ---
 def handle_shop_command(arguments, client_id):
     send = get_send_func()
@@ -165,8 +281,10 @@ def handle_shop_command(arguments, client_id):
         show_main_shop(client_id)
     elif arguments[0].lower() == 'tags':
         show_tags_shop(client_id)
+    elif arguments[0].lower() == 'effects':
+        show_effects_shop(client_id)
     else:
-        send(f"\ue043 Category '{arguments[0]}' not found!", client_id)
+        send(f"\ue043 Category '{arguments[0]}' not found!\ue043", client_id)
  
 
 import json
