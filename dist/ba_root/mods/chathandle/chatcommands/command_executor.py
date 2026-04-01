@@ -49,8 +49,9 @@ def execute(msg, clientid):
     Returns:
         any
     """
-    command = msg.lower().split(" ")[0].split("/")[1]
-    arguments = msg.lower().split(" ")[1:]
+    parts = msg.strip().split(" ")
+    command = parts[0].lower().split("/")[1]   # lowercase only command le pcmodder was here
+    arguments = parts[1:]                     # preserve original case
     accountid = clientid_to_accountid(clientid)
 
     if command_type(command) == "Normal":
