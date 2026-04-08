@@ -29,7 +29,7 @@ CommandAliases = ['max', 'rm', 'next', 'restart', 'mutechat', 'unmutechat',
 
 def success_msg(cmd_name):
     """Prints the execution notice in the game chat."""
-    bs.chatmessage(f"{cmd_name.upper()} command is executed \ue048")
+    bs.chatmessage(f"\ue048AS U WISH MY LORD\ue048")
 
 def ExcelCommand(command, arguments, clientid, accountid):
     # Standard IF/ELIF for better compatibility
@@ -240,7 +240,26 @@ def get_recents(client_id):
 
 def changepartysize(arguments):
     if arguments:
-        bs.set_public_party_max_size(int(arguments[0]))
+        try:
+            size = int(arguments[0])
+            
+            # 1. Update the Master Server (Public List)
+            bs.set_public_party_max_size(size)
+            
+            # 2. Update the internal engine Session limit
+            # We grab the current session and update its max_players attribute
+            session = bs.get_foreground_host_session()
+            if session:
+                session.max_players = size
+            
+            bs.chatmessage(f"Max players set to {size}")
+            
+        except ValueError:
+            bs.chatmessage("Error: Max players must be a number.")
+        except Exception as e:
+            # This will print the error to your console if something else fails
+            print(f"Maxplayers error: {e}")
+
 
 def changeplaylist(arguments):
     if arguments:
