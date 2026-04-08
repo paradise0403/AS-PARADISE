@@ -44,9 +44,9 @@ class textonmap:
             ("TOP 10 - EFFECTS + TAG", (1, 1, 1)),
             ("TOP 20 - TAG", (1, 1, 1)),
             ("JOIN DISCORD", (1, 1, 1)),
-            ("💫YOUR SERVER NAME💫" , (1, 1, 0)),
+            ("ðŸ”±WELCOME TO SERVERðŸ”±" , (1, 1, 0)),
             ("BY TEAM PARADISE" , (1, 0, 1)),
-            ("❣️AS PARADISE❣️" , (0, 1, 1))
+            ("â£ï¸AS PARADISEâ£ï¸" , (0, 1, 1))
         ]
         self._feature_index = 0
 
@@ -56,7 +56,7 @@ class textonmap:
         self.nextGame(nextMap)
         self.restart_msg()
         self.clay_text()
-        self.init_feature_cycle() # Naya function call
+        self.init_feature_cycle()
 
         if hasattr(_babase, "season_ends_in_days"):
             if _babase.season_ends_in_days < 9:
@@ -68,8 +68,8 @@ class textonmap:
         bs.timer(0.016, self._animate, repeat=True)
         self.timer = bs.timer(8, babase.Call(self.highlights_), repeat=True)
 
+    # ================= FEATURE TEXT =================
     def init_feature_cycle(self):
-        """Creates the cycling info text above next map."""
         self._feature_text = bs.newnode('text', attrs={
             'text': "",
             'flatness': 1.0,
@@ -77,46 +77,62 @@ class textonmap:
             'v_attach': 'bottom',
             'h_attach': 'right',
             'scale': 0.65,
-            'position': (-25, 45), # Positioned above Next Map
+            'position': (-25, 45),
             'opacity': 0.0
         })
         self._feature_timer = bs.timer(4.0, self._update_feature_cycle, repeat=True)
         self._update_feature_cycle()
 
     def _update_feature_cycle(self):
-        """Logic to fade and change the feature text."""
-        # Fade Out
         bs.animate(self._feature_text, 'opacity', {0.0: 1.0, 0.5: 0.0})
 
         def change_text():
             msg, color = self._feature_msgs[self._feature_index]
             self._feature_text.text = msg
             self._feature_text.color = color
-            # Fade In
             bs.animate(self._feature_text, 'opacity', {0.0: 0.0, 0.5: 1.0})
             self._feature_index = (self._feature_index + 1) % len(self._feature_msgs)
 
         bs.timer(0.5, change_text)
 
+    # ================= MAIN ANIMATION =================
     def _animate(self):
-        self._anim_time += 0.03
+        self._anim_time += 0.04
+
+        # ðŸ”´ BROOKLYN â†’ RED â†” GOLD
         if hasattr(self, '_owner_name_nodes'):
-            self.smooth_gradient(self._owner_name_nodes, (0.4, 1.0, 0.4), (1.0, 1.0, 0.0), speed=1.2)
+            self.smooth_gradient(
+                self._owner_name_nodes,
+                (1.0, 0.0, 0.0),
+                (1.0, 0.84, 0.0),
+                speed=1.3
+            )
+
+        # ðŸ’œ ASHX â†’ NEON PURPLE â†” WHITE
         if hasattr(self, '_script_name_nodes'):
-            self.smooth_gradient(self._script_name_nodes, (1.0, 0.5, 0.0), (1.0, 0.2, 0.2), speed=1.2)
+            self.smooth_gradient(
+                self._script_name_nodes,
+                (0.7, 0.0, 1.0),
+                (1.0, 1.0, 1.0),
+                speed=1.4
+            )
+
         if hasattr(self, '_top_message'):
             self.smooth_gradient(self._top_message, (0.5, 0.5, 1.0), (1.0, 1.0, 1.0), speed=1.0)
 
-    def smooth_gradient(self, nodes, c1, c2, speed=0.6):
+    def smooth_gradient(self, nodes, c1, c2, speed=1.0):
         for i, node in enumerate(nodes):
-            wave = (math.sin(self._anim_time * speed + i * 0.4) + 1) / 2
+            wave = (math.sin(self._anim_time * speed + i * 0.5) + 1) / 2
+
             r = c1[0] + (c2[0] - c1[0]) * wave
             g = c1[1] + (c2[1] - c1[1]) * wave
             b = c1[2] + (c2[2] - c1[2]) * wave
+
             node.color = (r, g, b)
 
+    # ================= CLAY TEXT =================
     def clay_text(self):
-        self.display_text = u"YOUR SERVER NAME"
+        self.display_text = u"ðŸ”± âœ¨ SEHU & ASHX âœ¨ ðŸ”±"
         self.display_position = (0, 200)
         scale_val = 0.4
         spacing = 20
@@ -125,55 +141,81 @@ class textonmap:
         for i, char in enumerate(self.display_text):
             node = bs.newnode('text', attrs={
                 'position': (start_x + i * spacing, self.display_position[1]),
-                'big': True, 'text': char, 'trail': True, 'vr_depth': 0,
-                'shadow': 0.5, 'scale': scale_val, 'h_align': 'center',
-                'v_align': 'center', 'color': (1, 0.1, 0.1),
+                'big': True, 'text': char, 'trail': True,
+                'shadow': 0.5, 'scale': scale_val,
+                'h_align': 'center', 'v_align': 'center',
+                'color': (1, 0.1, 0.1),
             })
             delay = i * 0.15
             bs.animate_array(node, 'color', 3, {
-                0.0 + delay: (1.0, 0.7, 0.7), 4.0 + delay: (0.75, 0.8, 1.0), 7.2 + delay: (1.0, 0.7, 0.7)
+                0.0 + delay: (1.0, 0.7, 0.7),
+                4.0 + delay: (0.75, 0.8, 1.0),
+                7.2 + delay: (1.0, 0.7, 0.7)
             }, loop=True)
             self.nodes.append(node)
 
+    # ================= LEFT WATERMARK =================
     def left_watermark(self):
         start_x = 25
         base_y = 67
         spacing = 10
+
         bs.newnode('text', attrs={
             'text': '__________________________________',
             'h_align': 'left', 'v_attach': 'bottom', 'h_attach': 'left',
             'scale': 0.5, 'position': (start_x, base_y + 35), 'color': (0.2, 1.0, 0.2)
         })
+
         bs.newnode('text', attrs={
             'text': '__________________________________',
             'h_align': 'left', 'v_attach': 'bottom', 'h_attach': 'left',
             'scale': 0.5, 'position': (start_x, base_y - 15), 'color': (0.2, 1.0, 0.2)
         })
+
         bs.newnode('text', attrs={
-            'text': u" [\U0001F451] OWNER: ",
-            'flatness': 1.0, 'h_align': 'left', 'v_attach': 'bottom', 'h_attach': 'left',
-            'scale': 0.6, 'position': (start_x + 5, base_y + 15), 'color': (1, 1, 1)
+            'text': u" ðŸ‘‘ OWNER: ",
+            'flatness': 1.0, 'h_align': 'left',
+            'v_attach': 'bottom', 'h_attach': 'left',
+            'scale': 0.6, 'position': (start_x + 5, base_y + 15),
+            'color': (1, 1, 1)
         })
+
         self._owner_name_nodes = []
-        for i, ch in enumerate("ASHX & SEHU"):
+        for i, ch in enumerate("SEHU"):
             n = bs.newnode('text', attrs={
-                'text': ch, 'flatness': 1.0, 'h_align': 'left', 'v_attach': 'bottom', 'h_attach': 'left',
-                'scale': 0.6, 'position': (start_x + 105 + i * spacing, base_y + 15)
+                'text': ch,
+                'flatness': 1.0,
+                'h_align': 'left',
+                'v_attach': 'bottom',
+                'h_attach': 'left',
+                'scale': 0.6,
+                'position': (start_x + 105 + i * spacing, base_y + 15)
             })
             self._owner_name_nodes.append(n)
+
         bs.newnode('text', attrs={
-            'text': u" [\U0001F4DD] SCRIPT BY:",
-            'flatness': 1.0, 'h_align': 'left', 'v_attach': 'bottom', 'h_attach': 'left',
-            'scale': 0.6, 'position': (start_x + 5, base_y - 5), 'color': (1, 1, 1)
+            'text': u" ðŸ“ SCRIPT BY:",
+            'flatness': 1.0, 'h_align': 'left',
+            'v_attach': 'bottom', 'h_attach': 'left',
+            'scale': 0.6,
+            'position': (start_x + 5, base_y - 5),
+            'color': (1, 1, 1)
         })
+
         self._script_name_nodes = []
         for i, ch in enumerate("ASHX"):
             n = bs.newnode('text', attrs={
-                'text': ch, 'flatness': 1.0, 'h_align': 'left', 'v_attach': 'bottom', 'h_attach': 'left',
-                'scale': 0.6, 'position': (start_x + 135 + i * spacing, base_y - 5)
+                'text': ch,
+                'flatness': 1.0,
+                'h_align': 'left',
+                'v_attach': 'bottom',
+                'h_attach': 'left',
+                'scale': 0.6,
+                'position': (start_x + 135 + i * spacing, base_y - 5)
             })
             self._script_name_nodes.append(n)
 
+    # ================= REST SAME =================
     def bottom_text(self):
         text = "JOIN DISCORD FOR FREE TAG :)"
         spacing = 12
@@ -187,7 +229,9 @@ class textonmap:
             })
             delay = i * 0.08
             bs.animate_array(n, 'color', 3, {
-                0.0 + delay: (0.85, 0.85, 0.85), 3.0 + delay: (0.65, 0.35, 0.28), 6.0 + delay: (0.85, 0.85, 0.85),
+                0.0 + delay: (0.85, 0.85, 0.85),
+                3.0 + delay: (0.65, 0.35, 0.28),
+                6.0 + delay: (0.85, 0.85, 0.85),
             }, loop=True)
             self._bottom_text.append(n)
 
@@ -248,10 +292,9 @@ class textonmap:
 
     def restart_msg(self):
         if hasattr(_babase, 'restart_scheduled'):
-            _babase.get_foreground_host_activity().restart_msg = bs.newnode('text', attrs={
+            bs.get_foreground_host_activity().restart_msg = bs.newnode('text', attrs={
                 'text': "Server going to restart after this series.",
                 'flatness': 1.0, 'h_align': 'right', 'v_attach': 'bottom', 'h_attach': 'right',
                 'scale': 0.5, 'position': (-25, 90), # Shifted up
                 'color': (1, 0.5, 0.7)
             })
-  
