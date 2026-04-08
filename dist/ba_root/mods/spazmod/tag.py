@@ -4,6 +4,7 @@ import math
 import random
 import os
 import json
+import re
 
 # Note: Make sure these files exist in your mods folder
 try:
@@ -11,7 +12,7 @@ try:
     from stats import mystats
     import setting
     sett = setting.get_settings_data()
-except ImportErrors:
+except ImportError:
     # Fallback for missing custom modules
     pdata = None
     mystats = None
@@ -57,9 +58,14 @@ def addrank(node, player):
     if rank:
         Rank(node, rank)
 
+def addstats(node, player):
+    """Entry point for the rotating stats loop."""
+    session_player = player.sessionplayer
+    account_id = session_player.get_v1_account_id()
+    StatLooper(node, account_id)
+
 def addhp(node, spaz):
     """Real-time HP system with Yellow Flash on damage."""
-    # Create the initial HP text
     spaz.hp_display = HitPoint(owner=node, prefix=str(int(spaz.hitpoints)), position=(0, 1.75, 0))
 
     def refresh_hp():
@@ -71,33 +77,112 @@ def addhp(node, spaz):
         
         if txt_node.exists():
             txt_node.text = f"\ue047{hp_val}\ue047"
-            # Damage Effect: Flash Yellow
             txt_node.color = (1, 1, 0)
             
-            # Restore normal color after a short delay (0.2s)
             def restore():
                 if txt_node.exists():
-                    # Red if low HP, White if healthy
                     txt_node.color = (1, 1, 1) if hp_val >= 20 else (1.0, 0.2, 0.2)
             bs.timer(0.2, restore)
 
-    # Hook into handlemessage to catch damage (HitMessage) instantly
     old_handle_message = spaz.handlemessage
     def new_handle_message(msg):
         if isinstance(msg, bs.HitMessage):
-            # Check HP immediately after the hit is processed
             bs.timer(0.01, refresh_hp)
         return old_handle_message(msg)
     
     spaz.handlemessage = new_handle_message
+
+class StatLooper:
+    """Handles the rotating display of player stats (Rank, Score, Kills, etc)"""
+    def __init__(self, owner, account_id):
+        self.node = owner
+        self.account_id = account_id
+        self.index = 0
+
+        # Create the text node
+        self.textnode = bs.newnode('text',
+                                  owner=self.node,
+                                  attrs={
+                                      'text': '',
+                                      'in_world': True,
+                                      'shadow': 1.0,
+                                      'flatness': 1.0,
+                                      'color': (1, 1, 1),
+                                      'scale': 0.008, # Slightly smaller to look cleaner
+                                      'h_align': 'center'
+                                  })
+
+        # Position it slightly lower than the main tag (1.2 instead of 1.5)
+        m = bs.newnode('math', owner=self.node, attrs={'input1': (0, 1.25, 0), 'operation': 'add'})
+        self.node.connectattr('torso_position', m, 'input2')
+        m.connectattr('output', self.textnode, 'position')
+
+        self._loop()
+
+    def _loop(self):
+        if not self.textnode or not self.textnode.exists():
+            return
+
+        aid = self.account_id
+
+        # Safely fetch data from mystats
+        try:
+            rank = mystats.get_rank(aid)
+            score = mystats.get_score(aid)
+            kills = mystats.get_kills(aid)
+            deaths = mystats.get_deaths(aid)
+            kd = mystats.get_kd(aid)
+        except Exception:
+            rank, score, kills, deaths, kd = 0, 0, 0, 0, 0.0
+
+        # Rotation List
+        stats = [
+            f"\ue043 Rank: {rank}",
+            f"\ue047 Score: {score}",
+            f"\ue047 Kills: {kills}",
+            f"\ue047 Deaths: {deaths}",
+            f"\ue047 KD: {kd}"
+        ]
+
+        self.textnode.text = stats[self.index]
+        
+        # Fade Animation
+        bs.animate(self.textnode, 'opacity', {
+            0.0: 0.0,
+            0.3: 1.0,
+            1.8: 1.0,
+            2.1: 0.0
+        })
+
+        self.index = (self.index + 1) % len(stats)
+        
+        # Repeat every 2.3 seconds (allows for the fade out to finish)
+        bs.timer(2.3, self._loop)
 
 class Tag:
     def __init__(self, owner, tag, col, anim_id):
         self.node = owner
         self.anim_id = anim_id
         
-        icons = {'\\d': '\ue048', '\\c': '\ue043', '\\h': '\ue049', '\\s': '\ue046', 
-                 '\\n': '\ue04b', '\\t': '\ue01f', '\\bs': '\ue01e'}
+        icons = {
+    '\\d': '\ue048',
+    '\\c': '\ue043',
+    '\\h': '\ue049',
+    '\\s': '\ue046',
+    '\\n': '\ue04b',
+    '\\t': '\ue01f',
+    '\\bs': '\ue01e',
+    '\\f': '\ue04f',
+    '\\g': '\ue027',
+    '\\i': '\ue03a',
+    '\\m': '\ue04d',
+    '\\j': '\ue010',
+    '\\e': '\ue045',
+    '\\l': '\ue047',
+    '\\a': '\ue020',
+    '\\b': '\ue00c'
+}
+
         for k, v in icons.items():
             tag = tag.replace(k, v)
 
@@ -138,15 +223,15 @@ class Tag:
             m.connectattr('output', t, 'position')
             
             delay = i * 0.15
-            if anim_id == 2: # Wave Red/Yellow
+            if anim_id == 2:
                 bs.animate_array(t, 'color', 3, {0.0:(1,0,0), 0.5:(1,1,0), 1.0:(1,0,0)}, loop=True, offset=delay)
                 bs.animate_array(m, 'input1', 3, {0.0:(current_x,1.5,0), 0.5:(current_x,1.58,0), 1.0:(current_x,1.5,0)}, loop=True, offset=delay)
-            elif anim_id == 3: # Smooth
+            elif anim_id == 3:
                 bs.animate(t, 'opacity', {0.0:0.3, 0.5:1.0, 1.0:0.3}, loop=True, offset=delay)
                 bs.animate_array(m, 'input1', 3, {0.0:(current_x,1.5,0), 0.5:(current_x,1.55,0), 1.0:(current_x,1.5,0)}, loop=True, offset=delay)
-            elif anim_id == 4: # Blink
+            elif anim_id == 4:
                 bs.animate(t, 'opacity', {0.0:1.0, 0.2:0.0, 0.4:1.0}, loop=True, offset=delay)
-            elif anim_id == 5: # Rainbow
+            elif anim_id == 5:
                 bs.animate_array(t, 'color', 3, {0.0:(1,0,0), 0.5:(0,1,0), 1.0:(0,0,1), 1.5:(1,0,0)}, loop=True, offset=delay)
 
 class Rank:
