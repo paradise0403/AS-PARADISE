@@ -1,22 +1,15 @@
 # ba_meta require api 9
 # ba_meta export babase.Plugin
 
-# ---------------- AUDIOOP FIX ----------------
 import sys
 from types import ModuleType
-
 if 'audioop' not in sys.modules:
-    mock_audioop = ModuleType('audioop')
-    mock_audioop.mul = lambda cp, size, factor: cp
-    mock_audioop.tomono = lambda cp, size, fac1, fac2: cp
-    sys.modules['audioop'] = mock_audioop
+    m = ModuleType('audioop')
+    m.mul = lambda *a: a[0]
+    m.tomono = lambda *a: a[0]
+    sys.modules['audioop'] = m
 
-# ---------------- IMPORTS ----------------
-
-import os
-import json
-import asyncio
-import logging
+import os, json, asyncio, logging, hashlib
 from threading import Thread
 from datetime import datetime, timezone
 from collections import deque
@@ -24,327 +17,342 @@ import threading
 
 import discord
 from discord.ext.commands import Bot
+from discord.ui import View, Button
 
 import babase
 import bascenev1 as bs
 
-# ---------------- LOAD SETTINGS ----------------
+# ---------------- PATHS ----------------
+BASE_DIR = os.path.dirname(__file__)
+SETTINGS_PATH = os.path.join(BASE_DIR, "..", "setting.json")
+STATS_JSON_PATH = os.path.join(BASE_DIR, "..", "stats", "stats.json")
+STATS_MSG_PATH = os.path.join(BASE_DIR, "..", "stats_message.json")
 
-SETTINGS_PATH = os.path.join(
-    os.path.dirname(__file__),
-    "..",
-    "setting.json"
-)
-
-with open(SETTINGS_PATH, "r") as f:
+# ---------------- SETTINGS ----------------
+with open(SETTINGS_PATH) as f:
     settings = json.load(f)
 
 dc = settings.get("discordbot", {})
-
 ENABLE = dc.get("enable", False)
 TOKEN = dc.get("token")
 LOGS_CHANNEL_ID = dc.get("logsChannelID")
 STATS_CHANNEL_ID = dc.get("liveStatsChannelID")
 
-# ---------------- LOAD CONFIG ----------------
-
-CONFIG_PATH = os.path.join(
-    os.path.dirname(__file__),
-    "..", "..", "..", "..",
-    "config.json"
-)
-
-server_config = {}
-
+# ---------------- CONFIG ----------------
+CONFIG_PATH = os.path.join(BASE_DIR, "..", "..", "..", "..", "config.json")
 try:
-    with open(CONFIG_PATH, "r") as f:
+    with open(CONFIG_PATH) as f:
         server_config = json.load(f)
-except Exception as e:
-    print("[CONFIG ERROR]", e)
+except:
+    server_config = {}
 
-def get_config(key, default):
-    return server_config.get(key, default)
+def get_config(k, d): return server_config.get(k, d)
 
-# ---------------- WEBSITE API ----------------
-
+# ---------------- WEB ----------------
 API_URL = "http://65.1.65.75:3000/api/update"
 API_KEY = "ASHX_SECRET"
 _cached_ip = None
 
 def get_public_ip():
     global _cached_ip
-    if _cached_ip:
-        return _cached_ip
+    if _cached_ip: return _cached_ip
     try:
         import requests
-        ip = requests.get("https://api.ipify.org", timeout=5).text.strip()
-        _cached_ip = ip
-        return ip
+        _cached_ip = requests.get("https://api.ipify.org").text.strip()
     except:
-        return "127.0.0.1"
+        _cached_ip = "127.0.0.1"
+    return _cached_ip
 
-def update_web_server(player_count, current_map, next_map):
-    def task():
+def update_web(players, cm, nm):
+    def t():
         try:
             import requests
             requests.post(API_URL, json={
-                "name": get_config("party_name", "SERVER"),
+                "name": get_config("party_name","SERVER"),
                 "ip": get_public_ip(),
-                "port": get_config("port", 43210),
-                "players": player_count,
-                "currentMap": current_map,
-                "nextMap": next_map,
-                "status": "online",
+                "port": get_config("port",43210),
+                "players": players,
+                "currentMap": cm,
+                "nextMap": nm,
+                "status":"online",
                 "key": API_KEY
             }, timeout=3)
-        except Exception as e:
-            print("[WEB ERROR]", e)
-
-    Thread(target=task, daemon=True).start()
+        except: pass
+    Thread(target=t, daemon=True).start()
 
 # ---------------- UTILS ----------------
+def clean(t): return ''.join(c for c in t if not (0xE000 <= ord(c) <= 0xF8FF))
 
-def push_log(msg: str):
-    timestamp = datetime.now().strftime("%H:%M:%S")
-    entry = f"[{timestamp}] {msg}"
+def hash_msg(m): return hashlib.md5(m.encode()).hexdigest()
 
-    if logs and logs[-1].split("] ", 1)[-1] == msg:
+def push_log(msg):
+    if logs and logs[-1] == msg:
         return
+    logs.append(msg)
 
-    logs.append(entry)
+def add_chat(msg):
+    global last_chat
+    msg = clean(msg)
+    if ">" in msg:
+        msg = msg.split(">")[-1]
+    msg = msg.replace(" - ", ":").strip()
+    if ":" not in msg:
+        return
+    try:
+        parts = msg.rsplit(":", 1)
+        text = parts[1].strip()
+        remaining = parts[0].strip()
+        if ":" in remaining:
+            name = remaining.rsplit(":", 1)[-1].strip()
+        else:
+            name = remaining.strip()
+        name = name.replace("", "").replace("**", "").strip()
+        if " " in name:
+            name = name.split(" ")[-1]
+    except:
+        return
+    if not name or not text:
+        return
+    key = f"{name.lower()}:{text.lower()}"
+    if key == last_chat:
+        return
+    last_chat = key
+    display = f"{name}: {text}"
+    with chat_lock:
+        chat_buffer.append(display)
 
-def clean_bs_text(text: str) -> str:
-    return ''.join(ch for ch in text if not (0xE000 <= ord(ch) <= 0xF8FF))
+def send_to_game(msg):
+    """Safely send message to game chat."""
+    try:
+        if bs.get_foreground_host_session() is not None:
+            bs.chatmessage(msg)
+    except: pass
+
+def save_stats_msg_id(mid):
+    try:
+        with open(STATS_MSG_PATH, "w") as f:
+            json.dump({"message_id": mid}, f)
+    except: pass
+
+def load_stats_msg_id():
+    try:
+        with open(STATS_MSG_PATH) as f:
+            return json.load(f).get("message_id")
+    except: return None
 
 # ---------------- DATA ----------------
-
 chat_buffer = deque(maxlen=15)
-player_info = {}
+chat_hashes = deque(maxlen=50)
 chat_lock = threading.Lock()
 
 stats = {}
 logs = []
+player_info = {}
 
 stats_message = None
 chat_message = None
+_last_stats = ""
+last_chat = ""
 
-_last_stats_content = None
-_last_chat_content = None
+# ---------------- LEADERBOARD ----------------
+def load_lb():
+    try:
+        with open(STATS_JSON_PATH) as f:
+            data = json.load(f)
+        if "stats" in data:
+            data = data["stats"]
+        players = []
+        for p in data.values():
+            players.append({
+                "name": clean(p.get("name","Unknown")),
+                "score": int(p.get("scores",0)),
+                "kills": int(p.get("kills",0)),
+                "deaths": int(p.get("deaths",0)),
+                "kd": round(float(p.get("kd",0)),2)
+            })
+        players.sort(key=lambda x: x["score"], reverse=True)
+        return players[:5]
+    except: return []
 
 # ---------------- DISCORD ----------------
+client = Bot(command_prefix='s!', intents=discord.Intents.all())
 
-logging.getLogger('asyncio').setLevel(logging.WARNING)
+class ChatBtn(View):
+    def __init__(self):
+        super().__init__(timeout=None)
 
-intents = discord.Intents.all()
-client = Bot(command_prefix='!', intents=intents)
+    @discord.ui.button(label="LIVE CHAT", style=discord.ButtonStyle.primary, custom_id="chat_toggle_btn")
+    async def toggle(self, interaction: discord.Interaction, button: Button):
+        global chat_message
+        await interaction.response.defer()
+        if chat_message:
+            try: await chat_message.delete()
+            except: pass
+            chat_message = None
+            return
+        chat_message = await interaction.channel.send(embed=build_chat())
 
-REFRESH_INTERVAL = 12
-LOG_FLUSH_INTERVAL = 20
+# ---------------- EMBEDS ----------------
+def build_stats():
+    embed = discord.Embed(
+        title=f"  {get_config('party_name','SERVER')}",
+        color=discord.Color.green(),
+        timestamp=datetime.now(timezone.utc)
+    )
+    pl = stats.get("playlist", {})
+    embed.add_field(name=" Maps", value=f"**Current**: {pl.get('current','-')}\n**Next**: {pl.get('next','-')}", inline=False)
+    embed.add_field(name=" Server", value=f"**IP**: `{get_public_ip()}`\n**Port**: `{get_config('port',43210)}`", inline=False)
+    
+    roster = stats.get("roster", {})
+    embed.add_field(name=" Players", value=f"{len(roster)} Online", inline=False)
+    
+    if roster:
+        txt = "\n".join([f" {clean(v['name'])} `[{k}]`" for k,v in roster.items()])
+    else:
+        txt = "*Server is empty...*"
+    embed.add_field(name=" Player List", value=txt, inline=False)
 
-# ---------------- INIT ----------------
+    lb = load_lb()
+    if lb:
+        txt = ""
+        for i, p in enumerate(lb, 1):
+            txt += f"**{i}. {p['name']}**\n Score:{p['score']} | K:{p['kills']} | D:{p['deaths']} | KD:{p['kd']}\n\n"
+    else:
+        txt = "No data available"
+    embed.add_field(name=" Leaderboard", value=txt, inline=False)
+    return embed
+
+def build_chat():
+    embed = discord.Embed(title=" Live Game Chat", color=discord.Color.blurple())
+    with chat_lock:
+        lines = []
+        for m in chat_buffer:
+            if ":" in m:
+                name, text = m.split(":", 1)
+                lines.append(f" **{name.strip()}**: {text.strip()}")
+            else:
+                lines.append(f" {m}")
+        embed.description = "\n".join(lines) if lines else "No chat yet..."
+    return embed
+
+# ---------------- LOOPS ----------------
+async def stats_loop():
+    global _last_stats
+    while not client.is_closed():
+        try:
+            if stats_message:
+                e = build_stats()
+                k = str(e.to_dict())
+                if k != _last_stats:
+                    await stats_message.edit(embed=e)
+                    _last_stats = k
+        except: pass
+        await asyncio.sleep(8)
+
+async def chat_loop():
+    while not client.is_closed():
+        await asyncio.sleep(2)
+        if chat_message:
+            try: await chat_message.edit(embed=build_chat())
+            except: pass
+
+async def log_loop():
+    ch = client.get_channel(LOGS_CHANNEL_ID)
+    while not client.is_closed():
+        await asyncio.sleep(4)
+        if logs and ch:
+            txt = "\n".join(logs[:20])
+            logs.clear()
+            try: await ch.send(embed=discord.Embed(title=" Live Logs", description=txt, color=0x2f3136))
+            except: pass
+
+async def prepare_message():
+    global stats_message
+    ch = client.get_channel(STATS_CHANNEL_ID)
+    if not ch: return
+
+    # 1. Delete Old Message from logic
+    msg_id = load_stats_msg_id()
+    if msg_id:
+        try:
+            old_msg = await ch.fetch_message(int(msg_id))
+            await old_msg.delete()
+        except: pass
+
+    # 2. Cleanup channel history for safety
+    try:
+        async for msg in ch.history(limit=10):
+            if msg.author.id == client.user.id:
+                await msg.delete()
+    except: pass
+
+    # 3. Send Fresh Message
+    stats_message = await ch.send(embed=build_stats(), view=ChatBtn())
+    save_stats_msg_id(stats_message.id)
+
+@client.event
+async def on_message(message):
+    if message.author.bot or message.channel.id != LOGS_CHANNEL_ID or not message.content:
+        return
+    try:
+        formatted_msg = f"{message.author.name}: {message.content}"
+        bs.pushcall(lambda: send_to_game(formatted_msg), from_other_thread=True)
+    except Exception as e:
+        print(f"Discord to Game Chat Error: {e}")
+    await client.process_commands(message)
+
+@client.event
+async def on_ready():
+    print("Bot Ready")
+    await prepare_message()
+    client.loop.create_task(stats_loop())
+    client.loop.create_task(chat_loop())
+    client.loop.create_task(log_loop())
+
+# ---------------- BS THREAD ----------------
+class BsDataThread:
+    def __init__(self):
+        self.old_roster = {}
+        self._last_msg_raw = None
+        self.timer = bs.AppTimer(2, babase.Call(self.update), repeat=True)
+
+    def update(self):
+        global stats
+        roster = {}
+        for p in bs.get_game_roster():
+            try: roster[p['account_id']] = {'name': p['players'][0]['name_full']}
+            except: pass
+        new_ids, old_ids = set(roster.keys()), set(self.old_roster.keys())
+        for p in new_ids - old_ids: push_log(f" JOIN: {roster[p]['name']}")
+        for p in old_ids - new_ids: push_log(f" LEFT: {self.old_roster[p]['name']}")
+        self.old_roster = roster
+        try:
+            msgs = bs.get_chat_messages()
+            if msgs:
+                raw_last = msgs[-1]
+                if raw_last != self._last_msg_raw:
+                    add_chat(raw_last)
+                    self._last_msg_raw = raw_last
+        except: pass
+        cm, nm = "-", "-"
+        try:
+            s = bs.get_foreground_host_session()
+            nm = s.get_next_game_description().evaluate()
+            cm = s._current_game_spec['resolved_type'].get_settings_display_string(s._current_game_spec).evaluate()
+        except: pass
+        stats['roster'] = roster
+        stats['playlist'] = {'current': cm, 'next': nm}
+        update_web(len(roster), cm, nm)
 
 def init():
-    if not ENABLE:
-        print("[Discord] Disabled")
-        return
-    if not TOKEN:
-        print("[Discord] Token missing")
-        return
-
+    if not ENABLE or not TOKEN: return
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
     loop.create_task(client.start(TOKEN))
     Thread(target=loop.run_forever, daemon=True).start()
 
-# ---------------- EVENTS ----------------
-
-@client.event
-async def on_ready():
-    print(f"[Discord] Logged in as {client.user}")
-    await prepare_messages()
-    client.loop.create_task(update_loop())
-    client.loop.create_task(send_logs_loop())
-
-# ---------------- MESSAGE SETUP ----------------
-
-async def prepare_messages():
-    global stats_message, chat_message
-    channel = client.get_channel(STATS_CHANNEL_ID)
-
-    bot_msgs = []
-    async for msg in channel.history(limit=10):
-        if msg.author.id == client.user.id:
-            bot_msgs.append(msg)
-
-    if bot_msgs:
-        stats_message = bot_msgs[0]
-        await stats_message.edit(embed=build_stats_embed())
-        chat_message = bot_msgs[1] if len(bot_msgs) > 1 else None
-    else:
-        stats_message = await channel.send(embed=build_stats_embed())
-        chat_message = None
-
-# ---------------- EMBEDS (UNCHANGED STYLE) ----------------
-
-def build_stats_embed():
-    embed = discord.Embed(
-        title=f"🎮 {get_config('party_name','SERVER')} Live Stats",
-        color=discord.Color.green(),
-        timestamp=datetime.now(timezone.utc)
-    )
-
-    roster = stats.get("roster", {})
-
-    if roster:
-        lines = []
-        for pbid, p in roster.items():
-            v2 = clean_bs_text(p['device_id'])
-            name = clean_bs_text(p['name'])
-
-            if name == v2:
-                line1 = f"👤{{<:v2:1462179402535272550>{v2}}}<:v2:1462179402535272550>{name}"
-            else:
-                line1 = f"👤{{<:v2:1462179402535272550>{v2}}}{name}"
-
-            lines.append(line1)
-            lines.append(f"📋 [{pbid}]")
-            lines.append("")
-
-        players = "\n".join(lines).strip()
-    else:
-        players = "No players online"
-
-    embed.add_field(name="👥 Players", value=players, inline=False)
-
-    playlist = stats.get("playlist", {})
-    embed.add_field(
-        name="🗺️ Map",
-        value=f"**Current:** {playlist.get('current','-')}\n"
-              f"**Next:** {playlist.get('next','-')}",
-        inline=False
-    )
-
-    return embed
-
-def build_chat_embed():
-    embed = discord.Embed(
-        title="💬 Live Chat",
-        color=discord.Color.blurple(),
-        timestamp=datetime.now(timezone.utc)
-    )
-
-    with chat_lock:
-        embed.description = "\n".join(chat_buffer)
-
-    return embed
-
-# ---------------- LOOP ----------------
-
-def _embed_key(embed):
-    return str(embed.to_dict())
-
-async def update_loop():
-    global _last_stats_content, _last_chat_content
-
-    while not client.is_closed():
-        try:
-            stats_embed = build_stats_embed()
-            key = _embed_key(stats_embed)
-
-            if key != _last_stats_content:
-                await stats_message.edit(embed=stats_embed)
-                _last_stats_content = key
-
-            await asyncio.sleep(2)
-
-            with chat_lock:
-                has_chat = bool(chat_buffer)
-
-            channel = client.get_channel(STATS_CHANNEL_ID)
-
-            if has_chat:
-                chat_embed = build_chat_embed()
-                ckey = _embed_key(chat_embed)
-
-                if chat_message is None:
-                    chat_message = await channel.send(embed=chat_embed)
-                    _last_chat_content = ckey
-                elif ckey != _last_chat_content:
-                    await chat_message.edit(embed=chat_embed)
-                    _last_chat_content = ckey
-            else:
-                if chat_message:
-                    await chat_message.delete()
-                    chat_message = None
-                    _last_chat_content = None
-
-        except Exception:
-            pass
-
-        await asyncio.sleep(REFRESH_INTERVAL)
-
-async def send_logs_loop():
-    channel = client.get_channel(LOGS_CHANNEL_ID)
-
-    while not client.is_closed():
-        await asyncio.sleep(LOG_FLUSH_INTERVAL)
-
-        if logs:
-            text = "\n".join(logs[:20])
-            logs.clear()
-
-            try:
-                await channel.send(f"```\n{text}\n```")
-            except:
-                pass
-
-# ---------------- BOMBSQUAD ----------------
-
-class BsDataThread:
-    def __init__(self):
-        self.timer = bs.AppTimer(5, babase.Call(self.refresh_stats), repeat=True)
-
-    def refresh_stats(self):
-        global stats
-
-        roster = {}
-        for p in bs.get_game_roster():
-            try:
-                roster[p['account_id']] = {
-                    'name': p['players'][0]['name_full'],
-                    'device_id': p['display_string']
-                }
-            except:
-                roster[p['account_id']] = {
-                    'name': "<in-lobby>",
-                    'device_id': p['display_string']
-                }
-
-        current_map = "-"
-        next_map = "-"
-
-        try:
-            session = bs.get_foreground_host_session()
-            next_map = session.get_next_game_description().evaluate()
-
-            spec = session._current_game_spec
-            gtype = spec['resolved_type']
-            current_map = gtype.get_settings_display_string(spec).evaluate()
-        except:
-            pass
-
-        stats['roster'] = roster
-        stats['playlist'] = {
-            'current': current_map,
-            'next': next_map
-        }
-
-        # 🌐 WEBSITE UPDATE
-        update_web_server(len(roster), current_map, next_map)
-
-# ---------------- PLUGIN ----------------
-
 class DiscordBotPlugin(babase.Plugin):
     def on_app_running(self):
         init()
         BsDataThread()
+ 
