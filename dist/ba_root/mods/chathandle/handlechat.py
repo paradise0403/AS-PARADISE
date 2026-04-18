@@ -32,7 +32,6 @@ settings = setting.get_settings_data()
 def filter_chat_message(msg, client_id):
     if msg:
         # --- QUIZ CHECK HOOK ---
-        # Sabse pehle check karo ki answer sahi hai ya nahi
         if question:
             question.handle_chat(msg, client_id)
 
@@ -51,25 +50,18 @@ def filter_chat_message(msg, client_id):
                 break
 
         clean_name = clean_bs_text(name)
-        clean_v2 = clean_bs_text(v2)
-        clean_msg = clean_bs_text(msg)
+        # clean_v2 = clean_bs_text(v2) # Not needed anymore
+        # clean_msg = clean_bs_text(msg) # Not needed anymore
 
-        if clean_name == "<in-lobby>":
-            display_name = clean_v2
-        else:
-            display_name = clean_name
-
+        # --- FIX: REMOVED MANUAL CHAT_BUFFER APPEND ---
+        # Ab yeh file chat_buffer mein kachra nahi bhejegi.
+        # Sirf player_info update karegi.
         with chat_lock:
             player_info[client_id] = {
                 "name": clean_name,
                 "pbid": pbid,
                 "v2": v2
             }
-
-            if display_name == clean_v2:
-                chat_buffer.append(f"?? <:v2:1462179402535272550>{display_name}: {clean_msg}")
-            else:
-                chat_buffer.append(f"?? {display_name}: {clean_msg}")
 
     now = datetime.now()
     if client_id == -1:
@@ -102,6 +94,7 @@ def filter_chat_message(msg, client_id):
     if msg == None:
         return
 
+    # Logger abhi bhi file mein save karega, but double Discord nahi hoga
     logger.log(f'{acid}  |  {displaystring}| {currentname} | {msg}', "chat")
     
     if msg.startswith("/"):
@@ -131,3 +124,4 @@ def filter_chat_message(msg, client_id):
     else:
         bs.broadcastmessage("\ue020Fetching your account info\ue046", transient=True, clients=[client_id])
         return None
+ 
