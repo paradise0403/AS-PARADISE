@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import random
-
 from typing import TYPE_CHECKING
 
 import bascenev1 as bs
@@ -25,8 +24,6 @@ def new_blast_init(
     hit_type: str = "explosion",
     hit_subtype: str = "normal",
 ):
-    """Instantiate with Purple Smoke (Circle Hidden)."""
-
     bs.Actor.__init__(self)
 
     shared = SharedObjects.get()
@@ -38,7 +35,6 @@ def new_blast_init(
     self.hit_subtype = hit_subtype
     self.radius = blast_radius
 
-    # Physics region (Hitbox)
     rmats = (factory.blast_material, shared.attack_material)
     self.node = bs.newnode(
         "region",
@@ -50,62 +46,83 @@ def new_blast_init(
             "materials": rmats,
         },
     )
+
     bs.timer(0.05, self.node.delete)
 
-    # Explosion node is needed for smoke color, but we make radius tiny to hide the circle
+    #  Soft Lavender Explosion (no eye strain)
     explosion = bs.newnode(
         "explosion",
         attrs={
             "position": position,
             "velocity": velocity,
-            "radius": 0.01,  # Tiny radius so purple circle isn't visible
+            "radius": self.radius,
             "big": (self.blast_type == "tnt"),
-            "color": (0.6, 0.1, 1.0), # Smoke color: Purple
         },
     )
+    explosion.color = (0.55, 0.4, 0.8)  # softer lavender
+
     bs.timer(1.0, explosion.delete)
 
-    # --- SMOKE EFFECTS (Now Purple) ---
-    if self.blast_type != "ice":
-        bs.emitfx(
-            position=position,
-            velocity=velocity,
-            count=int(3.0 + random.random() * 6), 
-            emit_type="tendrils",
-            tendril_type="thin_smoke",
-        )
+    #  Pink-style smoke (soft feel)
     bs.emitfx(
         position=position,
         velocity=velocity,
-        count=int(8.0 + random.random() * 8), # Increased smoke density
+        count=int(6.0 + random.random() * 6),
         emit_type="tendrils",
-        tendril_type="ice" if self.blast_type == "ice" else "smoke",
+        tendril_type="smoke",
     )
+
+    bs.emitfx(
+        position=position,
+        velocity=velocity,
+        count=int(4.0 + random.random() * 4),
+        emit_type="tendrils",
+        tendril_type="thin_smoke",
+    )
+
     bs.emitfx(
         position=position,
         emit_type="distortion",
-        spread=1.0 if self.blast_type == "tnt" else 2.0,
+        spread=2.0,
     )
 
-    # --- SHRAPNEL & DEBRIS ---
-    if self.blast_type == "ice":
-        def emit() -> None:
-            bs.emitfx(position=position, velocity=velocity, count=30, spread=2.0, scale=0.4, chunk_type="ice", emit_type="stickers")
-        bs.timer(0.05, emit)
-    elif self.blast_type == "sticky":
-        def emit() -> None:
-            bs.emitfx(position=position, velocity=velocity, count=int(4.0 + random.random() * 8), chunk_type="slime")
-            bs.emitfx(position=position, velocity=velocity, count=20, chunk_type="spark", emit_type="stickers")
-        bs.timer(0.05, emit)
-    else:
-        def emit() -> None:
-            if self.blast_type != "tnt":
-                bs.emitfx(position=position, velocity=velocity, count=int(4.0 + random.random() * 8), chunk_type="rock")
-            bs.emitfx(position=position, velocity=velocity, count=30, scale=0.7, chunk_type="spark", emit_type="stickers")
-            bs.emitfx(position=position, velocity=velocity, count=20, scale=0.8, spread=1.5, chunk_type="spark")
-        bs.timer(0.05, emit)
+    #  Soft lavender light (reduced brightness)
+    light = bs.newnode(
+        "light",
+        attrs={
+            "position": position,
+            "volume_intensity_scale": 5.0,  # reduced brightness
+            "color": (0.6, 0.4, 0.8),  # darker lavender
+        },
+    )
 
-    # --- SCORCH ---
+    bs.animate(
+        light,
+        "intensity",
+        {
+            0: 1.5,
+            0.05: 0.1,
+            0.1: 3.0,
+            0.2: 1.5,
+            0.5: 0.3,
+            1.5: 0.0,
+        },
+    )
+
+    bs.animate(
+        light,
+        "radius",
+        {
+            0: self.radius * 0.2,
+            0.1: self.radius * 0.5,
+            0.3: self.radius * 0.2,
+            1.0: self.radius * 0.05,
+        },
+    )
+
+    bs.timer(1.5, light.delete)
+
+    #  Soft purple scorch (not random anymore)
     scorch = bs.newnode(
         "scorch",
         attrs={
@@ -114,14 +131,18 @@ def new_blast_init(
             "big": (self.blast_type == "tnt"),
         },
     )
-    scorch.color = (random.random(), random.random(), random.random())
-    bs.animate(scorch, "presence", {3.000: 1, 13.000: 0})
-    bs.timer(13.0, scorch.delete)
+    scorch.color = (0.5, 0.3, 0.7)
 
-    # --- SOUNDS & CAMERA ---
-    factory.random_explode_sound().play(position=position)
-    bs.camerashake(intensity=5.0 if self.blast_type == "tnt" else 1.0)
+    bs.animate(scorch, "presence", {3.0: 1, 10.0: 0})
+    bs.timer(10.0, scorch.delete)
+
+    #  Sounds
+    lpos = light.position
+    factory.random_explode_sound().play(position=lpos)
+    factory.debris_fall_sound.play(position=lpos)
+
+    bs.camerashake(intensity=2.5)
 
 
 def enable() -> None:
-    bomb.Blast.__init__ = new_blast_init
+    bomb.Blast.__init__ = new_blast_init 
