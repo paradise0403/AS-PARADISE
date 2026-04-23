@@ -125,7 +125,7 @@ class HockeyStadium(bs.Map):
         gnode.floor_reflection = True
         gnode.debris_friction = 0.3
         gnode.debris_kill_height = -0.3
-        gnode.tint = (0.5, 0.5, 0.5)
+        gnode.tint = (0.9, 0.9, 0.9)
         gnode.ambient_color = (1.15, 1.25, 1.6)
         gnode.vignette_outer = (0.66, 0.67, 0.73)
         gnode.vignette_inner = (0.93, 0.93, 0.95)
@@ -305,7 +305,7 @@ class Bridgit(bs.Map):
             },
         )
         gnode = bs.getactivity().globalsnode
-        gnode.tint = (0.5, 0.5, 0.5)
+        gnode.tint = (0.9, 0.9, 0.9)
         gnode.ambient_color = (1.1, 1.2, 1.3)
         gnode.vignette_outer = (0.65, 0.6, 0.55)
         gnode.vignette_inner = (0.9, 0.9, 0.93)
@@ -631,7 +631,7 @@ class MonkeyFace(bs.Map):
             },
         )
         gnode = bs.getactivity().globalsnode
-        gnode.tint = (1.1, 1.2, 1.2)
+        gnode.tint = (1.0, 1.0, 1.0)
         gnode.ambient_color = (1.2, 1.3, 1.3)
         gnode.vignette_outer = (0.60, 0.62, 0.66)
         gnode.vignette_inner = (0.97, 0.95, 0.93)
@@ -920,7 +920,7 @@ class DoomShroom(bs.Map):
             },
         )
         gnode = bs.getactivity().globalsnode
-        gnode.tint = (0.82, 1.10, 1.15)
+        gnode.tint = (0.9, 0.9, 0.9)
         gnode.ambient_color = (0.9, 1.3, 1.1)
         gnode.shadow_ortho = False
         gnode.vignette_outer = (0.76, 0.76, 0.76)
@@ -1635,7 +1635,7 @@ class Courtyard(bs.Map):
                 },
             )
         gnode = bs.getactivity().globalsnode
-        gnode.tint = (0.5, 0.5, 0.5)
+        gnode.tint = (0.9, 0.9, 0.9)
         gnode.ambient_color = (1.2, 1.17, 1.1)
         gnode.vignette_outer = (0.6, 0.6, 0.64)
         gnode.vignette_inner = (0.95, 0.95, 0.93)
@@ -1744,7 +1744,7 @@ class Rampage(bs.Map):
             },
         )
         gnode = bs.getactivity().globalsnode
-        gnode.tint = (0.5, 0.5, 0.5)
+        gnode.tint = (0.9, 0.9, 0.9)
         gnode.ambient_color = (1.3, 1.2, 1.03)
         gnode.vignette_outer = (0.62, 0.64, 0.69)
         gnode.vignette_inner = (0.97, 0.95, 0.93)
