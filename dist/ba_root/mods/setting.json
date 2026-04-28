@@ -4,12 +4,12 @@
         "BrodcastCommand": true
     },
     "HostDeviceName": "Api 9",
-    "HostName": "ASHXv1",
+    "HostName": "AS PARADISE",
     "KickVoteMsgType": "chat",
     "ScoreScreenAnnouncement": {
         "enable": true,
         "msg": [
-            "ping staff inn discored for free tags in latest server",
+            "use /shop command to use your coins",
             "join discord to get early access of script",
             "type /daily to get free coins"
         ]
@@ -37,7 +37,7 @@
     "autoTeamBalance": true,
     "ballistica_web": {
         "discord_link": "https://discord.gg/UN42ck7FCY",
-        "enable": true,
+        "enable": false,
         "server_password": "ashx09"
     },
     "character_chooser": {
@@ -46,7 +46,7 @@
     "colorful_explosions": {
         "enable": true
     },
-    "colorfullMap": true,
+    "colorfullMap": false,
     "contributeData": true,
     "coopModeWithLessPlayers": {
         "enable": false,
@@ -69,49 +69,49 @@
     "elPatronPowerups": {
         "Quantity": {
             "Curse": 1,
-            "Fire Bombs": 3,
-            "Fly Bombs": 3,
-            "Goodbye": 2,
+            "Fire Bombs": 0,
+            "Fly Bombs": 0,
+            "Goodbye": 0,
             "Healing Damage": 1,
             "Health": 1,
             "Ice Bombs": 3,
-            "Ice Man": 1,
+            "Ice Man": 0,
             "Impact Bombs": 3,
-            "Impairment Bombs": 2,
+            "Impairment Bombs": 0,
             "Mine Bombs": 2,
-            "Punch": 3,
-            "Shield": 2,
-            "Speed": 2,
+            "Punch": 0,
+            "Shield": 0,
+            "Speed": 0,
             "Sticky Bombs": 3,
-            "Tank Shield": 1,
+            "Tank Shield": 0,
             "Triple": 3
         },
-        "enable": false,
+        "enable": true,
         "settings": {
             "Healing Damage PTG": 72,
             "Powers Gravity": true,
-            "Powerup Name": true,
+            "Powerup Name": false,
             "Powerup Scale": 1,
             "Powerup Style": "Auto",
             "Powerup Time": false,
-            "Powerup With Shield": true,
+            "Powerup With Shield": false,
             "Powerups": {
                 "Curse": 1,
-                "Fire Bombs": 3,
-                "Fly Bombs": 3,
-                "Goodbye": 2,
+                "Fire Bombs": 0,
+                "Fly Bombs": 0,
+                "Goodbye": 0,
                 "Healing Damage": 1,
                 "Health": 1,
                 "Ice Bombs": 3,
-                "Ice Man": 1,
+                "Ice Man": 0,
                 "Impact Bombs": 3,
-                "Impairment Bombs": 2,
+                "Impairment Bombs": 0,
                 "Mine Bombs": 2,
-                "Punch": 3,
-                "Shield": 2,
-                "Speed": 2,
+                "Punch": 0,
+                "Shield": 0,
+                "Speed": 0,
                 "Sticky Bombs": 3,
-                "Tank Shield": 1,
+                "Tank Shield": 0,
                 "Triple": 3
             },
             "Tank Shield PTG": 96
@@ -125,7 +125,7 @@
     "enablerank": true,
     "enablestats": true,
     "enabletags": true,
-    "firstTimeJoinMsg": "Welcome to the server,we r saving all your account details and chats",
+    "firstTimeJoinMsg": "Welcome to the as paradise,we r saving all your account details and chats",
     "leaderboard": {
         "barsBehindName": true,
         "enable": true
@@ -148,7 +148,7 @@
     "minAgeToJoinInHours": 24,
     "newResultBoard": true,
     "playermod": {
-        "default_bomb": "normal",
+        "default_bomb": "sticky",
         "default_bomb_count": 2,
         "default_boxing_gloves": true,
         "default_shield": false
@@ -162,7 +162,7 @@
         "soccer": 412160,
         "team": 12345
     },
-    "regularWelcomeMsg": "Welcome Back",
+    "regularWelcomeMsg": "Welcome Back mate",
     "sameCharacterForTeam": false,
     "statsResetAfterDays": 31,
     "textonmap": {
