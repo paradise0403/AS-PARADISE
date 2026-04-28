@@ -49,7 +49,7 @@ def new_blast_init(
 
     bs.timer(0.05, self.node.delete)
 
-    #  Soft Lavender Explosion (no eye strain)
+    # 🔴 Soft Red Explosion (no eye strain)
     explosion = bs.newnode(
         "explosion",
         attrs={
@@ -59,11 +59,11 @@ def new_blast_init(
             "big": (self.blast_type == "tnt"),
         },
     )
-    explosion.color = (0.55, 0.4, 0.8)  # softer lavender
+    explosion.color = (0.8, 0.2, 0.2)  # soft red
 
     bs.timer(1.0, explosion.delete)
 
-    #  Pink-style smoke (soft feel)
+    # 🔥 Smoke effect (same, but matches red theme)
     bs.emitfx(
         position=position,
         velocity=velocity,
@@ -86,13 +86,13 @@ def new_blast_init(
         spread=2.0,
     )
 
-    #  Soft lavender light (reduced brightness)
+    # 💡 Soft red light (reduced brightness)
     light = bs.newnode(
         "light",
         attrs={
             "position": position,
-            "volume_intensity_scale": 5.0,  # reduced brightness
-            "color": (0.6, 0.4, 0.8),  # darker lavender
+            "volume_intensity_scale": 5.0,
+            "color": (0.9, 0.3, 0.3),  # warm red glow
         },
     )
 
@@ -122,7 +122,7 @@ def new_blast_init(
 
     bs.timer(1.5, light.delete)
 
-    #  Soft purple scorch (not random anymore)
+    # 🔴 Red scorch
     scorch = bs.newnode(
         "scorch",
         attrs={
@@ -131,12 +131,12 @@ def new_blast_init(
             "big": (self.blast_type == "tnt"),
         },
     )
-    scorch.color = (0.5, 0.3, 0.7)
+    scorch.color = (0.6, 0.2, 0.2)
 
     bs.animate(scorch, "presence", {3.0: 1, 10.0: 0})
     bs.timer(10.0, scorch.delete)
 
-    #  Sounds
+    # 🔊 Sounds
     lpos = light.position
     factory.random_explode_sound().play(position=lpos)
     factory.debris_fall_sound.play(position=lpos)
