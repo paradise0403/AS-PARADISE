@@ -1,199 +1,252 @@
 # Released under the MIT License. See LICENSE for details.
-"""PowerupBox API 9: The Ultimate Bridge (Customs + Defaults + BA-EX)"""
+#
+"""Defines Actor(s)."""
 
 from __future__ import annotations
-import os
-import json
+
 import random
 from typing import TYPE_CHECKING, override
 
-import babase
 import bascenev1 as bs
 from bascenev1lib.gameutils import SharedObjects
 
 if TYPE_CHECKING:
     from typing import Any, Sequence
 
-# --- PATHS ---
-try:
-    storage_dir = babase.app.env.python_directory_storage
-    COIN_DATA_PATH = os.path.join(storage_dir, 'coin_data.json')
-except Exception:
-    COIN_DATA_PATH = './coin_data.json'
-
 DEFAULT_POWERUP_INTERVAL = 8.0
 
-class _TouchedMessage: pass
-class PowerupAcceptMessage: pass
+
+class _TouchedMessage:
+    pass
+
 
 class PowerupBoxFactory:
+
     _STORENAME = bs.storagename()
 
     def __init__(self) -> None:
         from bascenev1 import get_default_powerup_distribution
+
         shared = SharedObjects.get()
-        
+        self._lastpoweruptype: str | None = None
+
         self.mesh = bs.getmesh('powerup')
+        self.mesh_simple = bs.getmesh('powerupSimple')
+
+        self.tex_bomb = bs.gettexture('powerupBomb')
+        self.tex_punch = bs.gettexture('powerupPunch')
+        self.tex_ice_bombs = bs.gettexture('powerupIceBombs')
+        self.tex_sticky_bombs = bs.gettexture('powerupStickyBombs')
+        # ? removed shield texture
+        self.tex_impact_bombs = bs.gettexture('powerupImpactBombs')
+        self.tex_health = bs.gettexture('powerupHealth')
+        self.tex_land_mines = bs.gettexture('powerupLandMines')
+        self.tex_curse = bs.gettexture('powerupCurse')
+
+        self.health_powerup_sound = bs.getsound('healthPowerup')
         self.powerup_sound = bs.getsound('powerup01')
-        self.cash_sound = bs.getsound('cashRegister')
-        self.error_sound = bs.getsound('error')
+        self.powerdown_sound = bs.getsound('powerdown01')
+        self.drop_sound = bs.getsound('boxDrop')
 
-        # Custom Textures
-        self.tex_coin = bs.gettexture('coin')
-        self.tex_ice_impact = bs.gettexture('bombColorIce') 
-        self.tex_fake = bs.gettexture('buttonJump') 
-
-        # Materials
         self.powerup_material = bs.Material()
-        self.powerup_accept_material = bs.Material() 
-        
-        self.powerup_material.add_actions(actions=(
-            ('modify_part_collision', 'friction', 0.5),
-            ('message', 'our_node', 'at_connect', _TouchedMessage()),
-        ))
+        self.powerup_accept_material = bs.Material()
 
-        # --- THE BRIDGE DISTRIBUTION ---
+        self.powerup_material.add_actions(
+            conditions=('they_have_material', self.powerup_accept_material),
+            actions=(
+                ('modify_part_collision', 'collide', True),
+                ('modify_part_collision', 'physical', False),
+                ('message', 'our_node', 'at_connect', _TouchedMessage()),
+            ),
+        )
+
+        self.powerup_material.add_actions(
+            conditions=('they_have_material', shared.pickup_material),
+            actions=('modify_part_collision', 'collide', False),
+        )
+
+        self.powerup_material.add_actions(
+            conditions=('they_have_material', shared.footing_material),
+            actions=('impact_sound', self.drop_sound, 0.5, 0.1),
+        )
+
+        # ? remove shield from spawn
         self._powerupdist: list[str] = []
-        
-        # 1. Default PWPs (Punch, Triple, etc.)
-        for p, freq in get_default_powerup_distribution():
-            for _ in range(int(freq)): self._powerupdist.append(p)
-        
-        # 2. Your Custom PWPs
-        self._powerupdist.extend(['coin_box']*3 + ['ice_impact']*2 + ['fake_box']*2)
-        
-        # 3. BA-EX Items (Adding to the same spawn pool)
-        ex_items = [
-            'nitrogen_bomb', 'Xfactor_bomb', 's.m.b_bomb', 'T784_bomb', 
-            'stun_bomb', 'supplies', 'gloo_wall_bomb', 'teleport_bomb', 
-            'cosmic_bomb', 'electro-bombs', 'blackhole_bomb', 
-            'superhuman_healing', 'super_shield', 'attraction_bomb'
-        ]
-        self._powerupdist.extend(ex_items * 2)
+        for powerup, freq in get_default_powerup_distribution():
+            if powerup == 'shield':
+                continue
+            for _ in range(int(freq)):
+                self._powerupdist.append(powerup)
 
-    def get_random_powerup_type(self) -> str:
-        return random.choice(self._powerupdist)
+    def get_random_powerup_type(self, forcetype=None, excludetypes=None):
+        if excludetypes is None:
+            excludetypes = []
+        if forcetype:
+            ptype = forcetype
+        else:
+            if self._lastpoweruptype == 'curse':
+                ptype = 'health'
+            else:
+                while True:
+                    ptype = self._powerupdist[
+                        random.randint(0, len(self._powerupdist) - 1)
+                    ]
+                    if ptype not in excludetypes:
+                        break
+        self._lastpoweruptype = ptype
+        return ptype
 
     @classmethod
-    def get(cls) -> PowerupBoxFactory:
+    def get(cls):
         activity = bs.getactivity()
+        if activity is None:
+            raise bs.ContextError('No current activity.')
         if cls._STORENAME not in activity.customdata:
             activity.customdata[cls._STORENAME] = PowerupBoxFactory()
         return activity.customdata[cls._STORENAME]
 
+
 class PowerupBox(bs.Actor):
-    def __init__(self, position: Sequence[float] = (0.0, 1.0, 0.0), 
-                 poweruptype: str | None = None, expire: bool = True):
+
+    poweruptype: str
+    node: bs.Node
+
+    def __init__(self,
+                 position: Sequence[float] = (0.0, 1.0, 0.0),
+                 poweruptype: str = 'triple_bombs',
+                 expire: bool = True):
+
         super().__init__()
-        factory = PowerupBoxFactory.get()
         shared = SharedObjects.get()
-        self.poweruptype = poweruptype if poweruptype else factory.get_random_powerup_type()
+        factory = PowerupBoxFactory.get()
+
+        self.poweruptype = poweruptype
         self._powersgiven = False
 
-        t = bs.gettexture
-        m = bs.getmesh
-        
-        # Visual Mapping for EVERYTHING
-        v_map = {
-            'coin_box': (t('coin'), m('powerup'), 1.0),
-            'ice_impact': (t('bombColorIce'), m('powerup'), 1.0),
-            'fake_box': (t('tickets'), m('powerup'), 1.0),
-            'nitrogen_bomb': (t('bombColorIce'), m('shield'), 0.25),
-            'Xfactor_bomb': (t('textClearButton'), m('powerup'), 1.0),
-            's.m.b_bomb': (t('touchArrowsActions'), m('powerup'), 1.0),
-            'T784_bomb': (t('star'), m('powerup'), 1.0),
-            'supplies': (t('logoEaster'), m('powerup'), 1.0),
-            'stun_bomb': (t('ouyaUButton'), m('powerup'), 1.0),
-            'gloo_wall_bomb': (t('bombColorIce'), m('powerup'), 1.0),
-            'teleport_bomb': (t('rightButton'), m('powerup'), 1.0),
-            'cosmic_bomb': (t('achievementFootballShutout'), m('powerup'), 1.0),
-            'electro-bombs': (t('levelIcon'), m('powerup'), 1.0),
-            'blackhole_bomb': (t('replayIcon'), m('powerup'), 1.0),
-            'superhuman_healing': (t('achievementStayinAlive'), m('powerup'), 1.0),
-            'super_shield': (t('ouyaOButton'), m('powerup'), 1.0),
-            'attraction_bomb': (t('backIcon'), m('powerup'), 1.0),
-        }
+        if poweruptype == 'triple_bombs':
+            tex = factory.tex_bomb
+        elif poweruptype == 'punch':
+            tex = factory.tex_punch
+        elif poweruptype == 'ice_bombs':
+            tex = factory.tex_ice_bombs
+        elif poweruptype == 'impact_bombs':
+            tex = factory.tex_impact_bombs
+        elif poweruptype == 'land_mines':
+            tex = factory.tex_land_mines
+        elif poweruptype == 'sticky_bombs':
+            tex = factory.tex_sticky_bombs
+        elif poweruptype == 'health':
+            tex = factory.tex_health
+        elif poweruptype == 'curse':
+            tex = factory.tex_curse
+        else:
+            raise ValueError('invalid poweruptype: ' + str(poweruptype))
 
-        tex, mesh, scale = v_map.get(self.poweruptype, (t('powerupBomb'), m('powerup'), 1.0))
+        self.node = bs.newnode(
+            'prop',
+            delegate=self,
+            attrs={
+                'body': 'box',
+                'position': position,
+                'mesh': factory.mesh,
+                'light_mesh': factory.mesh_simple,
+                'shadow_size': 0.5,
+                'color_texture': tex,
+                'reflection': 'powerup',
+                'reflection_scale': [1.0],
+                'materials': (factory.powerup_material, shared.object_material),
+            },
+        )
 
-        self.node = bs.newnode('prop', delegate=self, attrs={
-            'body': 'box', 'position': position, 'mesh': mesh,
-            'color_texture': tex, 'reflection': 'powerup',
-            'mesh_scale': scale,
-            'materials': (factory.powerup_material, shared.object_material, shared.footing_material)
+        # ?? NAME
+        m = bs.newnode('math', owner=self.node,
+                       attrs={'input1': (0, 0.6, 0), 'operation': 'add'})
+        self.node.connectattr('position', m, 'input2')
+
+        name_txt = bs.newnode('text', owner=self.node, attrs={
+            'text': poweruptype.upper(),
+            'in_world': True,
+            'scale': 0.01,
+            'color': (1, 1, 1),
+            'h_align': 'center'
         })
+        m.connectattr('output', name_txt, 'position')
+
+        # ?? TIMER
+        m2 = bs.newnode('math', owner=self.node,
+                        attrs={'input1': (0, 0.9, 0), 'operation': 'add'})
+        self.node.connectattr('position', m2, 'input2')
+
+        timer_txt = bs.newnode('text', owner=self.node, attrs={
+            'text': '8',
+            'in_world': True,
+            'scale': 0.012,
+            'h_align': 'center'
+        })
+        m2.connectattr('output', timer_txt, 'position')
+
+        def tick(t):
+            if not timer_txt.exists():
+                return
+            timer_txt.text = str(t)
+
+            if t >= 5:
+                timer_txt.color = (0, 1, 0)
+            elif t >= 3:
+                timer_txt.color = (1, 1, 0)
+            else:
+                timer_txt.color = (1, 0, 0)
+
+        for i in range(8):
+            bs.timer(i, lambda i=i: tick(8 - i))
+
+        # animate
+        curve = bs.animate(self.node, 'mesh_scale', {0: 0, 0.14: 1.6, 0.2: 1})
+        bs.timer(0.2, curve.delete)
 
         if expire:
-            bs.timer(DEFAULT_POWERUP_INTERVAL - 1.0, bs.WeakCall(self._start_flashing))
-            bs.timer(DEFAULT_POWERUP_INTERVAL, bs.WeakCall(self.handlemessage, bs.DieMessage()))
+            bs.timer(5.5, bs.WeakCall(self._start_flashing))
+            bs.timer(7.0, bs.WeakCall(self.handlemessage, bs.DieMessage()))
 
-    def _start_flashing(self) -> None:
-        if self.node: self.node.flashing = True
-
-    def _handle_bridge_action(self, spaz: Any) -> None:
-        """Central hub to execute effects."""
-        factory = PowerupBoxFactory.get()
-        
-        # --- CUSTOMS ---
-        if self.poweruptype == 'coin_box':
-            player = spaz.getplayer(bs.Player, True)
-            if player:
-                acc_id = player.sessionplayer.get_v1_account_id()
-                data = {}
-                if os.path.exists(COIN_DATA_PATH):
-                    with open(COIN_DATA_PATH, 'r') as f: data = json.load(f)
-                stats = data.get(acc_id, {'coins': 0, 'name': player.getname(full=True)})
-                stats['coins'] += 50
-                data[acc_id] = stats
-                with open(COIN_DATA_PATH, 'w') as f: json.dump(data, f, indent=4)
-                factory.cash_sound.play(position=self.node.position)
-                bs.broadcastmessage(f"\ue01d {player.getname()}: +50 \ue01d", color=(0.2, 1, 0.2))
-
-        elif self.poweruptype == 'ice_impact':
-            spaz.bomb_type = 'ice_impact'
-            bs.broadcastmessage("\ue045 ICE-IMPACT EQUIPPED!", color=(0.4, 0.8, 1.0))
-
-        elif self.poweruptype == 'fake_box':
-            factory.error_sound.play(position=self.node.position)
-            bs.broadcastmessage("\ue00d NO PWP FOR U \ue00d", color=(1, 0, 0))
-
-        # --- BA-EX BRIDGE ---
-        else:
-            # Ye seedha baExPowerups plugin ke function ko call marega
-            # Plugin must be in mods folder!
-            if hasattr(spaz, 'ex_powerup_call'):
-                spaz.ex_powerup_call(self.poweruptype)
-
-        self.handlemessage(PowerupAcceptMessage())
+    def _start_flashing(self):
+        if self.node:
+            self.node.flashing = True
 
     @override
-    def handlemessage(self, msg: Any) -> Any:
-        if isinstance(msg, (bs.PowerupAcceptMessage, PowerupAcceptMessage)):
-            if self.node:
-                PowerupBoxFactory.get().powerup_sound.play(position=self.node.position)
-                self._powersgiven = True
-                self.handlemessage(bs.DieMessage())
+    def handlemessage(self, msg: Any):
+
+        if isinstance(msg, bs.PowerupAcceptMessage):
+            factory = PowerupBoxFactory.get()
+
+            if self.poweruptype == 'health':
+                factory.health_powerup_sound.play(
+                    3, position=self.node.position
+                )
+
+            factory.powerup_sound.play(3, position=self.node.position)
+            self._powersgiven = True
+            self.handlemessage(bs.DieMessage())
+
         elif isinstance(msg, _TouchedMessage):
-            if not self._powersgiven and self.node:
-                try:
-                    from bascenev1lib.actor.spaz import Spaz
-                    node = bs.getcollision().opposingnode
-                    spaz = node.getdelegate(Spaz, False)
-                    if spaz and spaz.is_alive():
-                        # Everything that is NOT a default PWP
-                        special = [
-                            'coin_box', 'ice_impact', 'fake_box', 'nitrogen_bomb', 
-                            'T784_bomb', 'super_shield', 'blackhole_bomb', 'Xfactor_bomb',
-                            'supplies', 'teleport_bomb', 'cosmic_bomb', 'electro-bombs',
-                            'stun_bomb', 'gloo_wall_bomb', 'superhuman_healing', 'attraction_bomb', 's.m.b_bomb'
-                        ]
-                        if self.poweruptype in special:
-                            self._handle_bridge_action(spaz)
-                        else:
-                            # Standard bomb logic (Triple bombs, etc.)
-                            node.handlemessage(bs.PowerupMessage(self.poweruptype, sourcenode=self.node))
-                            self.handlemessage(bs.PowerupAcceptMessage())
-                except Exception: pass
+            if not self._powersgiven:
+                node = bs.getcollision().opposingnode
+                node.handlemessage(
+                    bs.PowerupMessage(self.poweruptype,
+                                      sourcenode=self.node)
+                )
+
         elif isinstance(msg, bs.DieMessage):
-            if self.node: self.node.delete()
-        else: super().handlemessage(msg)
+            if self.node:
+                bs.animate(self.node, 'mesh_scale', {0: 1, 0.1: 0})
+                bs.timer(0.1, self.node.delete)
+
+        elif isinstance(msg, bs.OutOfBoundsMessage):
+            self.handlemessage(bs.DieMessage())
+
+        elif isinstance(msg, bs.HitMessage):
+            if msg.hit_type != 'punch':
+                self.handlemessage(bs.DieMessage())
+        else:
+            return super().handlemessage(msg)
+
+        return None
