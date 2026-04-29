@@ -1,6 +1,7 @@
 # Released under the MIT License. See LICENSE for details.
 #
 """Standard maps."""
+
 # pylint: disable=too-many-lines
 
 from __future__ import annotations
@@ -125,8 +126,8 @@ class HockeyStadium(bs.Map):
         gnode.floor_reflection = True
         gnode.debris_friction = 0.3
         gnode.debris_kill_height = -0.3
-        gnode.tint = (0.9, 0.9, 0.9)
-        gnode.ambient_color = (1.15, 1.25, 1.6)
+        gnode.tint = (1.2, 1.3, 1.33)
+        gnode.ambient_color = (5, 5, 5)
         gnode.vignette_outer = (0.66, 0.67, 0.73)
         gnode.vignette_inner = (0.93, 0.93, 0.95)
         gnode.vr_camera_offset = (0, -0.8, -1.1)
@@ -187,8 +188,8 @@ class FootballStadium(bs.Map):
             },
         )
         gnode = bs.getactivity().globalsnode
-        gnode.tint = (0.5, 0.5, 0.5)
-        gnode.ambient_color = (1.3, 1.2, 1.0)
+        gnode.tint = (1.3, 1.2, 1.0)
+        gnode.ambient_color = (5, 5, 5)
         gnode.vignette_outer = (0.57, 0.57, 0.57)
         gnode.vignette_inner = (0.9, 0.9, 0.9)
         gnode.vr_camera_offset = (0, -0.8, -1.1)
@@ -305,8 +306,8 @@ class Bridgit(bs.Map):
             },
         )
         gnode = bs.getactivity().globalsnode
-        gnode.tint = (0.9, 0.9, 0.9)
-        gnode.ambient_color = (1.1, 1.2, 1.3)
+        gnode.tint = (1.1, 1.2, 1.3)
+        gnode.ambient_color = (5, 5, 5)
         gnode.vignette_outer = (0.65, 0.6, 0.55)
         gnode.vignette_inner = (0.9, 0.9, 0.93)
 
@@ -419,7 +420,7 @@ class BigG(bs.Map):
         )
         gnode = bs.getactivity().globalsnode
         gnode.tint = (1.1, 1.2, 1.3)
-        gnode.ambient_color = (1.1, 1.2, 1.3)
+        gnode.ambient_color = (5, 5, 5)
         gnode.vignette_outer = (0.65, 0.6, 0.55)
         gnode.vignette_inner = (0.9, 0.9, 0.93)
 
@@ -525,7 +526,7 @@ class Roundabout(bs.Map):
         )
         gnode = bs.getactivity().globalsnode
         gnode.tint = (1.0, 1.05, 1.1)
-        gnode.ambient_color = (1.0, 1.05, 1.1)
+        gnode.ambient_color = (5, 5, 5)
         gnode.shadow_ortho = True
         gnode.vignette_outer = (0.63, 0.65, 0.7)
         gnode.vignette_inner = (0.97, 0.95, 0.93)
@@ -631,8 +632,8 @@ class MonkeyFace(bs.Map):
             },
         )
         gnode = bs.getactivity().globalsnode
-        gnode.tint = (1.0, 1.0, 1.0)
-        gnode.ambient_color = (1.2, 1.3, 1.3)
+        gnode.tint = (1.1, 1.2, 1.2)
+        gnode.ambient_color = (5, 5, 5)
         gnode.vignette_outer = (0.60, 0.62, 0.66)
         gnode.vignette_inner = (0.97, 0.95, 0.93)
         gnode.vr_camera_offset = (-1.4, 0, 0)
@@ -742,7 +743,7 @@ class ZigZag(bs.Map):
         )
         gnode = bs.getactivity().globalsnode
         gnode.tint = (1.0, 1.15, 1.15)
-        gnode.ambient_color = (1.0, 1.15, 1.15)
+        gnode.ambient_color = (5, 5, 5)
         gnode.vignette_outer = (0.57, 0.59, 0.63)
         gnode.vignette_inner = (0.97, 0.95, 0.93)
         gnode.vr_camera_offset = (-1.5, 0, 0)
@@ -783,26 +784,47 @@ class ThePad(bs.Map):
         # fixme should chop this into vr/non-vr sections for efficiency
         return data
 
-    def __init__(self) -> None:
+    def __init__(self, main_menu_style: bool = False) -> None:
         super().__init__()
         shared = SharedObjects.get()
         self.node = bs.newnode(
             'terrain',
             delegate=self,
-            attrs={
-                'collision_mesh': self.preloaddata['collision_mesh'],
-                'mesh': self.preloaddata['mesh'],
-                'color_texture': self.preloaddata['tex'],
-                'materials': [shared.footing_material],
-            },
+            attrs=(
+                {
+                    'collision_mesh': self.preloaddata['collision_mesh'],
+                    'mesh': self.preloaddata['mesh'],
+                    'color_texture': self.preloaddata['tex'],
+                    'materials': [shared.footing_material],
+                    'reflection': 'soft',
+                    'reflection_scale': [0.3],
+                }
+                if main_menu_style
+                else {
+                    'collision_mesh': self.preloaddata['collision_mesh'],
+                    'mesh': self.preloaddata['mesh'],
+                    'color_texture': self.preloaddata['tex'],
+                    'materials': [shared.footing_material],
+                }
+            ),
         )
         self.bottom = bs.newnode(
             'terrain',
-            attrs={
-                'mesh': self.preloaddata['bottom_mesh'],
-                'lighting': False,
-                'color_texture': self.preloaddata['tex'],
-            },
+            attrs=(
+                {
+                    'mesh': self.preloaddata['bottom_mesh'],
+                    'lighting': False,
+                    'color_texture': self.preloaddata['tex'],
+                    'reflection': 'soft',
+                    'reflection_scale': [0.45],
+                }
+                if main_menu_style
+                else {
+                    'mesh': self.preloaddata['bottom_mesh'],
+                    'lighting': False,
+                    'color_texture': self.preloaddata['tex'],
+                }
+            ),
         )
         self.background = bs.newnode(
             'terrain',
@@ -834,7 +856,7 @@ class ThePad(bs.Map):
         )
         gnode = bs.getactivity().globalsnode
         gnode.tint = (1.1, 1.1, 1.0)
-        gnode.ambient_color = (1.1, 1.1, 1.0)
+        gnode.ambient_color = (5, 5, 5)
         gnode.vignette_outer = (0.7, 0.65, 0.75)
         gnode.vignette_inner = (0.95, 0.95, 0.93)
 
@@ -864,7 +886,7 @@ class DoomShroom(bs.Map):
             'mesh': bs.getmesh('doomShroomLevel'),
             'collision_mesh': bs.getcollisionmesh('doomShroomLevelCollide'),
             'tex': bs.gettexture('doomShroomLevelColor'),
-            'bgtex': bs.gettexture('doomShroomBGColor'),
+            'bgtex': bs.gettexture('buttonSquare'),
             'bgmesh': bs.getmesh('doomShroomBG'),
             'vr_fill_mesh': bs.getmesh('doomShroomVRFill'),
             'stem_mesh': bs.getmesh('doomShroomStem'),
@@ -920,8 +942,8 @@ class DoomShroom(bs.Map):
             },
         )
         gnode = bs.getactivity().globalsnode
-        gnode.tint = (0.9, 0.9, 0.9)
-        gnode.ambient_color = (0.9, 1.3, 1.1)
+        gnode.tint = (0.82, 1.10, 1.15)
+        gnode.ambient_color = (5, 5, 5)
         gnode.shadow_ortho = False
         gnode.vignette_outer = (0.76, 0.76, 0.76)
         gnode.vignette_inner = (0.95, 0.95, 0.99)
@@ -1019,7 +1041,7 @@ class LakeFrigid(bs.Map):
         )
         gnode = bs.getactivity().globalsnode
         gnode.tint = (1, 1, 1)
-        gnode.ambient_color = (1, 1, 1)
+        gnode.ambient_color = (5, 5, 5)
         gnode.shadow_ortho = True
         gnode.vignette_outer = (0.86, 0.86, 0.86)
         gnode.vignette_inner = (0.95, 0.95, 0.99)
@@ -1102,7 +1124,7 @@ class TipTop(bs.Map):
         )
         gnode = bs.getactivity().globalsnode
         gnode.tint = (0.8, 0.9, 1.3)
-        gnode.ambient_color = (0.8, 0.9, 1.3)
+        gnode.ambient_color = (5, 5, 5)
         gnode.vignette_outer = (0.79, 0.79, 0.69)
         gnode.vignette_inner = (0.97, 0.97, 0.99)
 
@@ -1197,7 +1219,7 @@ class CragCastle(bs.Map):
         gnode.shadow_ortho = True
         gnode.shadow_offset = (0, 0, -5.0)
         gnode.tint = (1.15, 1.05, 0.75)
-        gnode.ambient_color = (1.15, 1.05, 0.75)
+        gnode.ambient_color = (5, 5, 5)
         gnode.vignette_outer = (0.6, 0.65, 0.6)
         gnode.vignette_inner = (0.95, 0.95, 0.95)
         gnode.vr_near_clip = 1.0
@@ -1307,7 +1329,7 @@ class TowerD(bs.Map):
         )
         gnode = bs.getactivity().globalsnode
         gnode.tint = (1.15, 1.11, 1.03)
-        gnode.ambient_color = (1.2, 1.1, 1.0)
+        gnode.ambient_color = (5, 5, 5)
         gnode.vignette_outer = (0.7, 0.73, 0.7)
         gnode.vignette_inner = (0.95, 0.95, 0.95)
 
@@ -1418,7 +1440,7 @@ class HappyThoughts(bs.Map):
         gnode.happy_thoughts_mode = True
         gnode.shadow_offset = (0.0, 8.0, 5.0)
         gnode.tint = (1.3, 1.23, 1.0)
-        gnode.ambient_color = (1.3, 1.23, 1.0)
+        gnode.ambient_color = (5, 5, 5)
         gnode.vignette_outer = (0.64, 0.59, 0.69)
         gnode.vignette_inner = (0.95, 0.95, 0.93)
         gnode.vr_near_clip = 1.0
@@ -1526,7 +1548,7 @@ class StepRightUp(bs.Map):
         )
         gnode = bs.getactivity().globalsnode
         gnode.tint = (1.2, 1.1, 1.0)
-        gnode.ambient_color = (1.2, 1.1, 1.0)
+        gnode.ambient_color = (5, 5, 5)
         gnode.vignette_outer = (0.7, 0.65, 0.75)
         gnode.vignette_inner = (0.95, 0.95, 0.93)
 
@@ -1635,8 +1657,8 @@ class Courtyard(bs.Map):
                 },
             )
         gnode = bs.getactivity().globalsnode
-        gnode.tint = (0.9, 0.9, 0.9)
-        gnode.ambient_color = (1.2, 1.17, 1.1)
+        gnode.tint = (1.2, 1.17, 1.1)
+        gnode.ambient_color = (5, 5, 5)
         gnode.vignette_outer = (0.6, 0.6, 0.64)
         gnode.vignette_inner = (0.95, 0.95, 0.93)
 
@@ -1744,8 +1766,8 @@ class Rampage(bs.Map):
             },
         )
         gnode = bs.getactivity().globalsnode
-        gnode.tint = (0.9, 0.9, 0.9)
-        gnode.ambient_color = (1.3, 1.2, 1.03)
+        gnode.tint = (1.2, 1.1, 0.97)
+        gnode.ambient_color = (5, 5, 5)
         gnode.vignette_outer = (0.62, 0.64, 0.69)
         gnode.vignette_inner = (0.97, 0.95, 0.93)
 
