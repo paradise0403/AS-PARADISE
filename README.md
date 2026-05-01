@@ -53,12 +53,10 @@ If ports are open, you can connect to your server now.
 
 ___
 ### More Configuration
-Open `dist/ba_root/mods/setting.json` in your prefered editor and change values according to you.
-
-[How to edit settings.json](https://github.com/imayushsaini/Bombsquad-Ballistica-Modded-Server/wiki/Server-Settings)
-
-[Available chat commands](https://github.com/imayushsaini/Bombsquad-Ballistica-Modded-Server/wiki/Chat-commands)
-
+open config.json and change party name, playlist code, teams name, team color, discord stats link.
+Open `dist/ba_root/mods/playersData/profiles.json` in your prefered editor.
+- Edit server settings here 
+- Also change discord bot configration
 ___
 ### Adding yourself as owner
 - Open `dist/ba_root/mods/playersData/roles.json` in your prefered editor.
@@ -73,6 +71,9 @@ Here you can ban players, mute them, or disable their kick votes.
 
 
 ## Features
+- 12 new tag animations.
+- New shop and coin system added.
+- New discord bot integration + dc to bs cmd added.
 - Rank System.
 - [Chat commands](https://github.com/imayushsaini/Bombsquad-Ballistica-Modded-Server/wiki/Chat-commands).
 - V2 Account with cloud console for server.
