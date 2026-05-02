@@ -64,7 +64,14 @@
         "liveChat": true,
         "liveStatsChannelID": 1475343168563052634,
         "logsChannelID": 1476067914535932047,
-        "token": "TOKEN"
+        "token": "TOKEN",
+        "prefix": "a!",
+        "cmd_prefix": "as",
+        "adminUsers": [
+            1254252895914688578,
+            1248220618936156260,
+            1234046707616972884
+        ]
     },
     "elPatronPowerups": {
         "Quantity": {
