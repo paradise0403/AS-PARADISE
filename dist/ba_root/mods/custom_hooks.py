@@ -43,6 +43,7 @@ from spazmod import modifyspaz
 from stats import mystats
 from tools import account
 import ender
+import coin_system
 from tools import notification_manager
 from tools import servercheck, server_update, logger, playlist, servercontroller
 
@@ -448,6 +449,416 @@ def on_classic_app_mode_active():
     _bascenev1.set_kickvote_msg_type(settings["KickVoteMsgType"])
     _bascenev1.hide_player_device_id(settings["Anti-IdRevealer"])
 
+import bascenev1 as bs
+from bascenev1lib.actor import playerspaz
+from bascenev1lib.actor import bomb as bs_bomb
+
+
+_ORIGINAL_DROP_BOMB = None
+
+
+class TeleportBomb(bs_bomb.Bomb):
+
+    def explode(self):
+        if self._exploded:
+            return
+
+        self._exploded = True
+
+        pos = self.node.position if self.node else (0, 1, 0)
+
+        try:
+            if self.owner and self.owner.exists():
+                self.owner.handlemessage(
+                    bs.StandMessage(position=(pos[0], pos[1] + 0.3, pos[2]))
+                )
+                self.owner.handlemessage(
+                    bs.PowerupMessage(poweruptype='health')
+                )
+        except Exception as e:
+            print("TeleportBomb owner error:", e)
+
+        try:
+            bs.newnode(
+                'explosion',
+                attrs={
+                    'position': pos,
+                    'radius': 1.8,
+                    'color': (1.2, 0.23, 0.23),
+                },
+            )
+            bs.emitfx(
+                position=pos,
+                count=25,
+                scale=1.3,
+                spread=1.2,
+                chunk_type='spark',
+            )
+            bs.getsound('spawn').play(position=pos)
+        except Exception:
+            pass
+
+        bs.timer(0.001, bs.WeakCall(self.handlemessage, bs.DieMessage()))
+
+
+def patch_teleport_bomb_drop():
+    global _ORIGINAL_DROP_BOMB
+
+    if _ORIGINAL_DROP_BOMB is not None:
+        return
+
+    _ORIGINAL_DROP_BOMB = playerspaz.PlayerSpaz.drop_bomb
+
+    def drop_bomb_patched(self):
+        count = getattr(self, "_teleport_bomb_count", 0)
+
+        if count > 0:
+            try:
+                if not self.node or not self.node.exists():
+                    return None
+
+                if self.frozen:
+                    return None
+
+                pos = self.node.position_forward
+                vel = self.node.velocity
+
+                try:
+                    source_player = self.getplayer(bs.Player, True)
+                except Exception:
+                    source_player = None
+
+                tbomb = TeleportBomb(
+                    position=(pos[0], pos[1], pos[2]),
+                    velocity=(vel[0], vel[1], vel[2]),
+                    bomb_type='impact',
+                    blast_radius=self.blast_radius,
+                    source_player=source_player,
+                    owner=self.node,
+                ).autoretain()
+
+                self._teleport_bomb_count = count - 1
+
+                self._pick_up(tbomb.node)
+
+                for callback in self._dropped_bomb_callbacks:
+                    callback(self, tbomb)
+
+                return tbomb
+
+            except Exception as e:
+                print("Teleport bomb drop error:", e)
+
+        return _ORIGINAL_DROP_BOMB(self)
+
+    playerspaz.PlayerSpaz.drop_bomb = drop_bomb_patched
+    print("✅ Teleport bomb drop patched")
+
+
+patch_teleport_bomb_drop()
+
+# ================= HEADACHE HOMING BOMB SYSTEM =================
+
+import random
+import math
+import bascenev1 as bs
+from bascenev1lib.actor import playerspaz
+from bascenev1lib.actor import bomb as bs_bomb
+
+
+_ORIGINAL_DROP_BOMB_HEADACHE = None
+
+
+class HeadacheBomb(bs_bomb.Bomb):
+
+    def __init__(self, *args, owner=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.owner = owner
+        self._homing_timer = bs.Timer(
+            0.08,
+            bs.WeakCall(self._home_to_enemy),
+            repeat=True
+        )
+
+    def _home_to_enemy(self):
+        if not self.node or not self.node.exists():
+            return
+
+        try:
+            my_pos = self.node.position
+            target = None
+            best_dist = 999999.0
+
+            activity = bs.get_foreground_host_activity()
+
+            for player in activity.players:
+                try:
+                    spaz = player.actor
+                    node = spaz.node
+
+                    if not node or not node.exists():
+                        continue
+
+                    if self.owner is not None and node is self.owner:
+                        continue
+
+                    pos = node.position
+
+                    dx = pos[0] - my_pos[0]
+                    dy = pos[1] - my_pos[1]
+                    dz = pos[2] - my_pos[2]
+
+                    dist = math.sqrt(dx * dx + dy * dy + dz * dz)
+
+                    if dist < best_dist:
+                        best_dist = dist
+                        target = node
+
+                except Exception:
+                    pass
+
+            if target is None:
+                return
+
+            tpos = target.position
+
+            dx = tpos[0] - my_pos[0]
+            dy = tpos[1] - my_pos[1]
+            dz = tpos[2] - my_pos[2]
+
+            dist = max(math.sqrt(dx * dx + dy * dy + dz * dz), 0.01)
+
+            speed = 12.0
+
+            self.node.velocity = (
+                dx / dist * speed,
+                dy / dist * speed + 1.5,
+                dz / dist * speed,
+            )
+
+            try:
+                bs.emitfx(
+                    position=my_pos,
+                    count=2,
+                    scale=0.4,
+                    spread=0.2,
+                    chunk_type='metal',
+                )
+            except Exception:
+                pass
+
+        except Exception as e:
+            print("Headache homing error:", e)
+
+
+def patch_headache_drop_bomb():
+    global _ORIGINAL_DROP_BOMB_HEADACHE
+
+    if _ORIGINAL_DROP_BOMB_HEADACHE is not None:
+        return
+
+    _ORIGINAL_DROP_BOMB_HEADACHE = playerspaz.PlayerSpaz.drop_bomb
+
+    def drop_bomb_patched(self):
+        count = getattr(self, "_headache_count", 0)
+
+        if count > 0:
+            try:
+                if not self.node or not self.node.exists():
+                    return None
+
+                if self.frozen:
+                    return None
+
+                pos = self.node.position_forward
+                vel = self.node.velocity
+
+                try:
+                    source_player = self.getplayer(bs.Player, True)
+                except Exception:
+                    source_player = None
+
+                hbomb = HeadacheBomb(
+                    position=(pos[0], pos[1], pos[2]),
+                    velocity=(vel[0], vel[1] + 2.0, vel[2]),
+                    bomb_type='sticky',
+                    blast_radius=self.blast_radius,
+                    source_player=source_player,
+                    owner=self.node,
+                ).autoretain()
+
+                self._headache_count = count - 1
+
+                self._pick_up(hbomb.node)
+
+                for callback in self._dropped_bomb_callbacks:
+                    callback(self, hbomb)
+
+                return hbomb
+
+            except Exception as e:
+                print("Headache bomb drop error:", e)
+
+        return _ORIGINAL_DROP_BOMB_HEADACHE(self)
+
+    playerspaz.PlayerSpaz.drop_bomb = drop_bomb_patched
+    print("✅ Headache homing bomb patched")
+
+
+patch_headache_drop_bomb()
+
+import bascenev1 as bs
+from bascenev1lib.actor import playerspaz
+from bascenev1lib.actor import bomb as bs_bomb
+
+_ORIGINAL_DROP_BOMB_CUSTOMS = None
+
+
+class CustomElementBomb(bs_bomb.Bomb):
+
+    def __init__(self, *args, custom_type='ice_impact', owner=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.custom_type = custom_type
+        self.owner = owner
+
+        if self.node:
+            if custom_type == 'impact_curse':
+                self.node.color_texture = bs.gettexture('powerupCurse')
+            elif custom_type == 'ice_impact':
+                self.node.color_texture = bs.gettexture('bombColorIce')
+            elif custom_type == 'ice_mine':
+                self.node.color_texture = bs.gettexture('egg2')
+
+    def explode(self):
+        if self._exploded:
+            return
+
+        self._exploded = True
+        pos = self.node.position if self.node else (0, 1, 0)
+
+        if self.custom_type == 'impact_curse':
+            color = (0.8, 0.1, 1)
+        else:
+            color = (0.1, 0.7, 1)
+
+        try:
+            bs.newnode(
+                'explosion',
+                attrs={
+                    'position': pos,
+                    'radius': self.blast_radius,
+                    'color': color,
+                },
+            )
+            bs.emitfx(
+                position=pos,
+                count=35,
+                scale=1.3,
+                spread=1.4,
+                chunk_type='spark' if self.custom_type == 'impact_curse' else 'ice',
+            )
+        except Exception:
+            pass
+
+        try:
+            activity = bs.get_foreground_host_activity()
+            for player in activity.players:
+                try:
+                    spaz = player.actor
+                    node = spaz.node
+                    if not node or not node.exists():
+                        continue
+
+                    npos = node.position
+                    dx = npos[0] - pos[0]
+                    dy = npos[1] - pos[1]
+                    dz = npos[2] - pos[2]
+                    dist = (dx * dx + dy * dy + dz * dz) ** 0.5
+
+                    if dist <= self.blast_radius + 0.8:
+                        if self.custom_type == 'impact_curse':
+                            node.handlemessage(bs.PowerupMessage(poweruptype='curse'))
+                        else:
+                            node.handlemessage(bs.FreezeMessage())
+
+                        node.handlemessage(
+                            bs.HitMessage(
+                                pos=pos,
+                                velocity=(dx * 40, 120, dz * 40),
+                                magnitude=350,
+                                radius=self.blast_radius,
+                                hit_type='explosion',
+                                hit_subtype=self.custom_type,
+                                source_player=self._source_player,
+                            )
+                        )
+                except Exception:
+                    pass
+        except Exception as e:
+            print('custom bomb explode error:', e)
+
+        bs.timer(0.001, bs.WeakCall(self.handlemessage, bs.DieMessage()))
+
+
+def patch_custom_bomb_drop():
+    global _ORIGINAL_DROP_BOMB_CUSTOMS
+
+    if _ORIGINAL_DROP_BOMB_CUSTOMS is not None:
+        return
+
+    _ORIGINAL_DROP_BOMB_CUSTOMS = playerspaz.PlayerSpaz.drop_bomb
+
+    def drop_bomb_patched(self):
+        checks = [
+            ('_impact_curse_count', 'impact_curse', 'impact'),
+            ('_ice_impact_count', 'ice_impact', 'impact'),
+            ('_ice_mine_count', 'ice_mine', 'land_mine'),
+        ]
+
+        for attr, custom_type, base_type in checks:
+            count = getattr(self, attr, 0)
+
+            if count > 0:
+                try:
+                    if not self.node or not self.node.exists() or self.frozen:
+                        return None
+
+                    pos = self.node.position_forward
+                    vel = self.node.velocity
+
+                    try:
+                        source_player = self.getplayer(bs.Player, True)
+                    except Exception:
+                        source_player = None
+
+                    cbomb = CustomElementBomb(
+                        position=(pos[0], pos[1], pos[2]),
+                        velocity=(vel[0], vel[1] + 1.5, vel[2]),
+                        bomb_type=base_type,
+                        blast_radius=self.blast_radius,
+                        source_player=source_player,
+                        owner=self.node,
+                        custom_type=custom_type,
+                    ).autoretain()
+
+                    setattr(self, attr, count - 1)
+                    self._pick_up(cbomb.node)
+
+                    for callback in self._dropped_bomb_callbacks:
+                        callback(self, cbomb)
+
+                    return cbomb
+
+                except Exception as e:
+                    print('custom bomb drop error:', e)
+
+        return _ORIGINAL_DROP_BOMB_CUSTOMS(self)
+
+    playerspaz.PlayerSpaz.drop_bomb = drop_bomb_patched
+    print('? Impact Curse / Ice Impact / Ice Mine patched')
+
+
+patch_custom_bomb_drop()
 
 def bcs_verify_client_account_ip(account_id: str, ip: str, client_id: int) -> str | None:
     """Verify a client account ID and IP address.
