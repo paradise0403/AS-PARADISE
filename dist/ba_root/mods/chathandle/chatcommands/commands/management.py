@@ -27,123 +27,134 @@ CommandAliases = ['max', 'rm', 'next', 'restart', 'mutechat', 'unmutechat',
                   'sm', 'slow', 'night', 'day', 'pausegame', 'camera_mode',
                   'rotate_camera', 'effect', 'p']
 
-def success_msg(cmd_name):
-    """Prints the execution notice in the game chat."""
-    bs.chatmessage(f"\ue048AS U WISH MY LORD\ue048")
+def success_msg(accountid):
+    try:
+        roles = pdata.get_player_roles(accountid)
+
+        if not roles:
+            role_name = "USER"
+        else:
+            role_name = roles[0].upper()  # first role
+
+        bs.chatmessage(f"\ue048{role_name} COMMAND ACCEPTED\ue048")
+
+    except Exception as e:
+        print(f"Role Msg Error: {e}")
+        bs.chatmessage("\ue048COMMAND ACCEPTED\ue048")
 
 def ExcelCommand(command, arguments, clientid, accountid):
     # Standard IF/ELIF for better compatibility
     if command == 'unban':
         unban(arguments)
-        success_msg(command)
+        success_msg(accountid)
     elif command == 'recents':
         get_recents(clientid)
     elif command == 'info':
         get_player_info(arguments, clientid)
-        success_msg(command)
+        success_msg(accountid)
     elif command in ['maxplayers', 'max']:
         changepartysize(arguments)
-        success_msg(command)
+        success_msg(accountid)
     elif command == 'createteam':
         create_team(arguments)
-        success_msg(command)
+        success_msg(accountid)
     elif command == 'playlist':
         changeplaylist(arguments)
-        success_msg(command)
+        success_msg(accountid)
     elif command == 'kick':
         kick(arguments)
-        success_msg(command)
+        success_msg(accountid)
     elif command == 'ban':
         ban(arguments)
-        success_msg(command)
+        success_msg(accountid)
     elif command in ['end', 'next']:
         end(arguments)
-        success_msg(command)
+        success_msg(accountid)
     elif command == 'kickvote':
         kikvote(arguments, clientid)
-        success_msg(command)
+        success_msg(accountid)
     elif command == 'hideid':
         hide_player_spec()
-        success_msg(command)
+        success_msg(accountid)
     elif command == 'showid':
         show_player_spec()
-        success_msg(command)
+        success_msg(accountid)
     elif command == 'lm':
         last_msgs(clientid)
-        success_msg(command)
+        success_msg(accountid)
     elif command == 'gp':
         get_profiles(arguments, clientid)
-        success_msg(command)
+        success_msg(accountid)
     elif command == 'party':
         party_toggle(arguments)
-        success_msg(command)
+        success_msg(accountid)
     elif command in ['quit', 'restart']:
         quit_game(arguments)
-        success_msg(command)
+        success_msg(accountid)
     elif command in ['mute', 'mutechat']:
         mute(arguments)
-        success_msg(command)
+        success_msg(accountid)
     elif command in ['unmute', 'unmutechat']:
         un_mute(arguments)
-        success_msg(command)
+        success_msg(accountid)
     elif command in ['remove', 'rm']:
         remove(arguments)
-        success_msg(command)
+        success_msg(accountid)
     elif command in ['sm', 'slow', 'slowmo']:
         slow_motion(arguments)
-        success_msg(command)
+        success_msg(accountid)
         bs.chatmessage("Slo-Mo Mode Toggled!")
     elif command in ['nv', 'night']:
         nv(arguments)
-        success_msg(command)
+        success_msg(accountid)
     elif command == 'tint':
         tint(arguments)
-        success_msg(command)
+        success_msg(accountid)
     elif command in ['pause', 'pausegame']:
         pause(arguments)
-        success_msg(command)
+        success_msg(accountid)
     elif command in ['cameraMode', 'camera_mode', 'rotate_camera']:
         rotate_camera(arguments)
-        success_msg(command)
+        success_msg(accountid)
     elif command == 'createrole':
         create_role(arguments)
-        success_msg(command)
+        success_msg(accountid)
     elif command == 'addrole':
         add_role_to_player(arguments)
-        success_msg(command)
+        success_msg(accountid)
     elif command == 'removerole':
         remove_role_from_player(arguments)
-        success_msg(command)
+        success_msg(accountid)
     elif command == 'getroles':
         get_roles_of_player(arguments, clientid)
-        success_msg(command)
+        success_msg(accountid)
     elif command in ['addcommand', 'addcmd']:
         add_command_to_role(arguments)
-        success_msg(command)
+        success_msg(accountid)
     elif command in ['removecommand', 'removecmd']:
         remove_command_to_role(arguments)
-        success_msg(command)
+        success_msg(accountid)
     elif command == 'changetag':
         change_role_tag(arguments)
-        success_msg(command)
+        success_msg(accountid)
     elif command == 'customtag':
         set_custom_tag(arguments)
-        success_msg(command)
+        success_msg(accountid)
     elif command in ['customeffect', 'effect']:
         set_custom_effect(arguments)
-        success_msg(command)
+        success_msg(accountid)
     elif command == 'removetag':
         remove_custom_tag(arguments)
-        success_msg(command)
+        success_msg(accountid)
     elif command == 'removeeffect':
         remove_custom_effect(arguments)
-        success_msg(command)
+        success_msg(accountid)
     elif command == 'spectators':
         spectators(arguments)
-        success_msg(command)
+        success_msg(accountid)
     elif command == 'lobbytime':
         change_lobby_check_time(arguments)
-        success_msg(command)
+        success_msg(accountid)
     
     # --- PET COMMAND LOGIC ---
     elif command in ['pet', 'p', 'custompet']:
@@ -151,7 +162,7 @@ def ExcelCommand(command, arguments, clientid, accountid):
             target_id = int(arguments[0]) if (arguments and arguments[0] != '') else clientid
             # Direct call to the pet handler
             ashx_pets.handle_pet_command(arguments, target_id)
-            success_msg(command)
+            success_msg(accountid)
         except Exception as e:
             print(f"Pet Command Error: {e}")
 

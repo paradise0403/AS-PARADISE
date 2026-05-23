@@ -2,25 +2,33 @@ import babase
 import bascenev1 as bs
 from .handlers import handlemsg, handlemsg_all, clientid_to_myself
 
-Commands = ['kill', 'heal', 'curse', 'sleep', 'superpunch', 'gloves', 'shield',
-            'freeze', 'unfreeze', 'godmode']
-CommandAliases = ['die', 'heath', 'cur', 'sp', 'punch', 'protect', 'ice',
-                  'thaw', 'gm']
+Commands = [
+    'kill',
+    'heal',
+    'curse',
+    'sleep',
+    'superpunch',
+    'gloves',
+    'shield',
+    'freeze',
+    'unfreeze',
+    'godmode'
+]
+
+CommandAliases = [
+    'die',
+    'heath',
+    'cur',
+    'sp',
+    'punch',
+    'protect',
+    'ice',
+    'thaw',
+    'gm'
+]
 
 
 def ExcelCommand(command, arguments, clientid, accountid):
-    """
-    Checks The Command And Run Function
-
-    Parameters:
-        command : str
-        arguments : str
-        clientid : int
-        accountid : int
-
-    Returns:
-        None
-    """
 
     if command in ['kill', 'die']:
         kill(arguments, clientid)
@@ -53,219 +61,296 @@ def ExcelCommand(command, arguments, clientid, accountid):
         god_mode(arguments, clientid)
 
 
-def kill(arguments, clientid):
-    if arguments == [] or arguments == ['']:
-        myself = clientid_to_myself(clientid)
-        handlemsg(myself, bs.DieMessage())
+def _get_activity():
+    try:
+        return bs.get_foreground_host_activity()
+    except Exception:
+        return None
 
-    elif arguments[0] == 'all':
-        handlemsg_all(bs.DieMessage())
 
-    else:
+def _is_empty(arguments):
+    return arguments == [] or arguments == ['']
+
+
+def _safe_actor(player):
+
+    try:
+        actor = player.actor
+
+        if actor is None:
+            return None
+
+        if not actor.node:
+            return None
+
+        if not actor.node.exists():
+            return None
+
+        return actor
+
+    except Exception:
+        return None
+
+
+def _get_players(arguments, clientid):
+
+    activity = _get_activity()
+
+    if activity is None:
+        return []
+
+    if _is_empty(arguments):
+
         try:
-            req_player = int(arguments[0])
-            handlemsg(req_player, bs.DieMessage())
-        except:
-            return
+            myself = clientid_to_myself(clientid)
+            return [activity.players[myself]]
+        except Exception:
+            return []
+
+    if str(arguments[0]).lower() == 'all':
+        return list(activity.players)
+
+    try:
+        req_player = int(arguments[0])
+        return [activity.players[req_player]]
+    except Exception:
+        return []
+
+
+def kill(arguments, clientid):
+
+    players = _get_players(arguments, clientid)
+
+    for player in players:
+
+        actor = _safe_actor(player)
+
+        if actor:
+            actor.handlemessage(bs.DieMessage())
 
 
 def heal(arguments, clientid):
-    if arguments == [] or arguments == ['']:
-        myself = clientid_to_myself(clientid)
-        handlemsg(myself, bs.PowerupMessage(poweruptype='health'))
 
-    elif arguments[0] == 'all':
-        handlemsg_all(bs.PowerupMessage(poweruptype='health'))
+    players = _get_players(arguments, clientid)
 
-    else:
-        try:
-            req_player = int(arguments[0])
-            handlemsg(req_player, bs.PowerupMessage(poweruptype='health'))
-        except:
-            return
+    for player in players:
+
+        actor = _safe_actor(player)
+
+        if actor:
+            actor.handlemessage(
+                bs.PowerupMessage(
+                    poweruptype='health'
+                )
+            )
 
 
 def curse(arguments, clientid):
-    if arguments == [] or arguments == ['']:
-        myself = clientid_to_myself(clientid)
-        handlemsg(myself, bs.PowerupMessage(poweruptype='curse'))
 
-    elif arguments[0] == 'all':
-        handlemsg_all(bs.PowerupMessage(poweruptype='curse'))
+    players = _get_players(arguments, clientid)
 
-    else:
-        try:
-            req_player = int(arguments[0])
-            handlemsg(req_player, bs.PowerupMessage(poweruptype='curse'))
-        except:
-            return
+    for player in players:
+
+        actor = _safe_actor(player)
+
+        if actor:
+            actor.handlemessage(
+                bs.PowerupMessage(
+                    poweruptype='curse'
+                )
+            )
 
 
 def sleep(arguments, clientid):
-    activity = bs.get_foreground_host_activity()
 
-    if arguments == [] or arguments == ['']:
-        myself = clientid_to_myself(clientid)
-        activity.players[myself].actor.node.handlemessage('knockout', 8000)
+    players = _get_players(arguments, clientid)
 
-    elif arguments[0] == 'all':
-        for i in activity.players:
-            i.actor.node.handlemessage('knockout', 8000)
-    else:
-        try:
-            req_player = int(arguments[0])
-            activity.players[req_player].actor.node.handlemessage('knockout',
-                                                                  8000)
-        except:
-            return
+    for player in players:
+
+        actor = _safe_actor(player)
+
+        if actor:
+            actor.node.handlemessage(
+                'knockout',
+                8000
+            )
 
 
 def super_punch(arguments, clientid):
-    activity = bs.get_foreground_host_activity()
 
-    if arguments == [] or arguments == ['']:
+    players = _get_players(arguments, clientid)
 
-        myself = clientid_to_myself(clientid)
+    for player in players:
 
-        if activity.players[myself].actor._punch_power_scale != 15:
-            activity.players[myself].actor._punch_power_scale = 15
-            activity.players[myself].actor._punch_cooldown = 0
-        else:
-            activity.players[myself].actor._punch_power_scale = 1.2
-            activity.players[myself].actor._punch_cooldown = 400
+        actor = _safe_actor(player)
 
-    elif arguments[0] == 'all':
+        if actor is None:
+            continue
 
-        activity = bs.get_foreground_host_activity()
-
-        for i in activity.players:
-            if i.actor._punch_power_scale != 15:
-                i.actor._punch_power_scale = 15
-                i.actor._punch_cooldown = 0
-            else:
-                i.actor._punch_power_scale = 1.2
-                i.actor._punch_cooldown = 400
-
-    else:
         try:
-            activity = bs.get_foreground_host_activity()
-            req_player = int(arguments[0])
 
-            if activity.players[req_player].actor._punch_power_scale != 15:
-                activity.players[req_player].actor._punch_power_scale = 15
-                activity.players[req_player].actor._punch_cooldown = 0
+            enabled = getattr(
+                actor,
+                '_super_punch',
+                False
+            )
+
+            if not enabled:
+
+                actor._super_punch = True
+
+                actor._punch_power_scale = 15
+                actor._punch_cooldown = 0
+
+                bs.broadcastmessage(
+                    f'{player.getname()} SUPERPUNCH ON',
+                    color=(0, 1, 0)
+                )
+
             else:
-                activity.players[req_player].actor._punch_power_scale = 1.2
-                activity.players[req_player].actor._punch_cooldown = 400
-        except:
-            return
+
+                actor._super_punch = False
+
+                actor._punch_power_scale = 1.2
+                actor._punch_cooldown = 400
+
+                bs.broadcastmessage(
+                    f'{player.getname()} SUPERPUNCH OFF',
+                    color=(1, 0, 0)
+                )
+
+        except Exception as e:
+            print('Super Punch Error:', e)
 
 
 def gloves(arguments, clientid):
-    if arguments == [] or arguments == ['']:
-        myself = clientid_to_myself(clientid)
-        handlemsg(myself, bs.PowerupMessage(poweruptype='punch'))
 
-    elif arguments[0] == 'all':
-        handlemsg_all(bs.PowerupMessage(poweruptype='punch'))
+    players = _get_players(arguments, clientid)
 
-    else:
-        try:
-            req_player = int(arguments[0])
-            handlemsg(req_player, bs.PowerupMessage(poweruptype='punch'))
-        except:
-            return
+    for player in players:
+
+        actor = _safe_actor(player)
+
+        if actor:
+            actor.handlemessage(
+                bs.PowerupMessage(
+                    poweruptype='punch'
+                )
+            )
 
 
 def shield(arguments, clientid):
-    if arguments == [] or arguments == ['']:
-        myself = clientid_to_myself(clientid)
-        handlemsg(myself, bs.PowerupMessage(poweruptype='shield'))
 
-    elif arguments[0] == 'all':
-        handlemsg_all(bs.PowerupMessage(poweruptype='shield'))
+    players = _get_players(arguments, clientid)
 
-    else:
-        try:
-            req_player = int(arguments[0])
-            handlemsg(req_player, bs.PowerupMessage(poweruptype='shield'))
-        except:
-            return
+    for player in players:
+
+        actor = _safe_actor(player)
+
+        if actor:
+            actor.handlemessage(
+                bs.PowerupMessage(
+                    poweruptype='shield'
+                )
+            )
 
 
 def freeze(arguments, clientid):
-    if arguments == [] or arguments == ['']:
-        myself = clientid_to_myself(clientid)
-        handlemsg(myself, bs.FreezeMessage())
 
-    elif arguments[0] == 'all':
-        handlemsg_all(bs.FreezeMessage())
+    players = _get_players(arguments, clientid)
 
-    else:
-        try:
-            req_player = int(arguments[0])
-            handlemsg(req_player, bs.FreezeMessage())
-        except:
-            return
+    for player in players:
+
+        actor = _safe_actor(player)
+
+        if actor:
+            actor.handlemessage(
+                bs.FreezeMessage()
+            )
 
 
 def un_freeze(arguments, clientid):
-    if arguments == [] or arguments == ['']:
-        myself = clientid_to_myself(clientid)
-        handlemsg(myself, bs.ThawMessage())
 
-    elif arguments[0] == 'all':
-        handlemsg_all(bs.ThawMessage())
+    players = _get_players(arguments, clientid)
 
-    else:
-        try:
-            req_player = int(arguments[0])
-            handlemsg(req_player, bs.ThawMessage())
-        except:
-            return
+    for player in players:
+
+        actor = _safe_actor(player)
+
+        if actor:
+            actor.handlemessage(
+                bs.ThawMessage()
+            )
 
 
 def god_mode(arguments, clientid):
-    if arguments == [] or arguments == ['']:
-        myself = clientid_to_myself(clientid)
-        activity = bs.get_foreground_host_activity()
-        player = activity.players[myself].actor
 
-        if player._punch_power_scale != 7:
-            player._punch_power_scale = 7
-            player.node.hockey = True
-            player.node.invincible = True
+    players = _get_players(arguments, clientid)
 
-        else:
-            player._punch_power_scale = 1.2
-            player.node.hockey = False
-            player.node.invincible = False
+    for player in players:
 
-    elif arguments[0] == 'all':
+        actor = _safe_actor(player)
 
-        activity = bs.get_foreground_host_activity()
+        if actor is None:
+            continue
 
-        for i in activity.players:
-            if i.actor._punch_power_scale != 7:
-                i.actor._punch_power_scale = 7
-                i.actor.node.hockey = True
-                i.actor.node.invincible = True
+        try:
+
+            enabled = getattr(
+                actor,
+                '_godmode',
+                False
+            )
+
+            if not enabled:
+
+                actor._godmode = True
+
+                actor.hitpoints = 99999
+                actor.hitpoints_max = 99999
+
+                actor._punch_power_scale = 7
+                actor._punch_cooldown = 0
+
+                try:
+                    actor.node.hockey = True
+                except Exception:
+                    pass
+
+                bs.emitfx(
+                    position=actor.node.position,
+                    count=25,
+                    spread=0.5,
+                    scale=1.2,
+                    chunk_type='spark'
+                )
+
+                bs.broadcastmessage(
+                    f'{player.getname()} GODMODE ON',
+                    color=(0, 1, 0)
+                )
+
             else:
-                i.actor._punch_power_scale = 1.2
-                i.actor.node.hockey = False
-                i.actor.node.invincible = False
 
-    else:
-        activity = bs.get_foreground_host_activity()
-        req_player = int(arguments[0])
-        player = activity.players[req_player].actor
+                actor._godmode = False
 
-        if player._punch_power_scale != 7:
-            player._punch_power_scale = 7
-            player.node.hockey = True
-            player.node.invincible = True
+                actor.hitpoints_max = 1000
 
-        else:
-            player._punch_power_scale = 1.2
-            player.node.hockey = False
-            player.node.invincible = False
+                if actor.hitpoints > 1000:
+                    actor.hitpoints = 1000
+
+                actor._punch_power_scale = 1.2
+                actor._punch_cooldown = 400
+
+                try:
+                    actor.node.hockey = False
+                except Exception:
+                    pass
+
+                bs.broadcastmessage(
+                    f'{player.getname()} GODMODE OFF',
+                    color=(1, 0, 0)
+                )
+
+        except Exception as e:
+            print('GodMode Error:', e) 

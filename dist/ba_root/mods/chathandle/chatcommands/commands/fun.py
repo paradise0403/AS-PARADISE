@@ -3,24 +3,27 @@ import bascenev1 as bs
 from tools import corelib
 from .handlers import handlemsg, handlemsg_all
 
-Commands = ['fly', 'invisible', 'headless', 'creepy', 'celebrate', 'spaz',
-            'speed', 'floater']
-CommandAliases = ['inv', 'hl', 'creep', 'celeb', 'flo']
+Commands = [
+    'fly',
+    'invisible',
+    'headless',
+    'creepy',
+    'celebrate',
+    'spaz',
+    'speed',
+    'floater'
+]
+
+CommandAliases = [
+    'inv',
+    'hl',
+    'creep',
+    'celeb',
+    'flo'
+]
 
 
 def ExcelCommand(command, arguments, clientid, accountid):
-    """
-    Checks The Command And Run Function
-
-    Parameters:
-        command : str
-        arguments : str
-        clientid : int
-        accountid : int
-
-    Returns:
-        None
-    """
 
     if command == 'speed':
         speed(arguments)
@@ -44,68 +47,108 @@ def ExcelCommand(command, arguments, clientid, accountid):
         spaz(arguments)
 
     elif command in ['floater', 'flo']:
-        floater(arguments, clientid)
+        floater_cmd(arguments, clientid)
 
 
-def floater(arguments, clientid):
+# ================= FLOATER =================
+
+def floater_cmd(arguments, clientid):
+
     try:
-        import floater
-        if arguments == []:
+
+        from features import floater
+
+        if arguments == [] or arguments == ['']:
+
             floater.assignFloInputs(clientid)
+
         else:
-            floater.assignFloInputs(arguments[0])
+
+            floater.assignFloInputs(int(arguments[0]))
+
+        bs.broadcastmessage(
+            'Floater Enabled!',
+            color=(0, 1, 1),
+            transient=True
+        )
+
+    except Exception as e:
+
+        print('Floater Error:', e)
+
+        bs.broadcastmessage(
+            f'Floater Error: {e}',
+            color=(1, 0, 0),
+            transient=True
+        )
+
+
+# ================= SPEED =================
+
+def speed(arguments):
+
+    if arguments == [] or arguments == ['']:
+        return
+
+    try:
+        corelib.set_speed(float(arguments[0]))
     except:
         pass
 
 
-def speed(arguments):
-    if arguments == [] or arguments == ['']:
-        return
-    else:
-        corelib.set_speed(float(arguments[0]))
-
+# ================= FLY =================
 
 def fly(arguments):
+
     if arguments == [] or arguments == ['']:
         return
 
+    activity = bs.get_foreground_host_activity()
 
-    elif arguments[0] == 'all':
-
-        activity = bs.get_foreground_host_activity()
+    if arguments[0] == 'all':
 
         for players in activity.players:
-            if players.actor.node.fly != True:
-                players.actor.node.fly = True
-            else:
-                players.actor.node.fly = False
+
+            try:
+
+                node = players.actor.node
+
+                node.fly = not node.fly
+
+            except:
+                pass
 
     else:
+
         try:
 
-            activity = bs.get_foreground_host_activity()
             player = int(arguments[0])
 
-            if activity.players[player].actor.node.fly != True:
-                activity.players[player].actor.node.fly = True
-            else:
-                activity.players[player].actor.node.fly = False
+            node = activity.players[player].actor.node
+
+            node.fly = not node.fly
 
         except:
             return
 
 
+# ================= INVISIBLE =================
+
 def invi(arguments):
+
     if arguments == [] or arguments == ['']:
         return
 
-    elif arguments[0] == 'all':
+    activity = bs.get_foreground_host_activity()
 
-        activity = bs.get_foreground_host_activity()
+    if arguments[0] == 'all':
 
         for i in activity.players:
-            if i.actor.exists() and i.actor.node.torso_mesh != None:
+
+            try:
+
                 body = i.actor.node
+
                 body.head_mesh = None
                 body.torso_mesh = None
                 body.upper_arm_mesh = None
@@ -116,14 +159,18 @@ def invi(arguments):
                 body.upper_leg_mesh = None
                 body.lower_leg_mesh = None
                 body.style = 'cyborg'
+
+            except:
+                pass
+
     else:
 
-        player = int(arguments[0])
-        activity = bs.get_foreground_host_activity()
+        try:
 
-        body = activity.players[player].actor.node
+            player = int(arguments[0])
 
-        if body.torso_mesh != None:
+            body = activity.players[player].actor.node
+
             body.head_mesh = None
             body.torso_mesh = None
             body.upper_arm_mesh = None
@@ -135,84 +182,139 @@ def invi(arguments):
             body.lower_leg_mesh = None
             body.style = 'cyborg'
 
+        except:
+            return
+
+
+# ================= HEADLESS =================
 
 def headless(arguments):
+
     if arguments == [] or arguments == ['']:
         return
 
-    elif arguments[0] == 'all':
+    activity = bs.get_foreground_host_activity()
 
-        activity = bs.get_foreground_host_activity()
+    if arguments[0] == 'all':
 
         for players in activity.players:
 
-            node = players.actor.node
-            if node.head_mesh != None:
+            try:
+
+                node = players.actor.node
+
                 node.head_mesh = None
                 node.style = 'cyborg'
 
+            except:
+                pass
+
     else:
+
         try:
+
             player = int(arguments[0])
-            activity = bs.get_foreground_host_activity()
 
             node = activity.players[player].actor.node
 
-            if node.head_mesh != None:
-                node.head_mesh = None
-                node.style = 'cyborg'
+            node.head_mesh = None
+            node.style = 'cyborg'
+
         except:
             return
 
+
+# ================= CREEP =================
 
 def creep(arguments):
+
     if arguments == [] or arguments == ['']:
         return
 
-    elif arguments[0] == 'all':
+    activity = bs.get_foreground_host_activity()
 
-        activity = bs.get_foreground_host_activity()
+    if arguments[0] == 'all':
 
         for players in activity.players:
-            node = players.actor.node
 
-            if node.head_mesh != None:
+            try:
+
+                node = players.actor.node
+
                 node.head_mesh = None
-                node.handlemessage(bs.PowerupMessage(poweruptype='punch'))
-                node.handlemessage(bs.PowerupMessage(poweruptype='shield'))
+
+                players.actor.handlemessage(
+                    bs.PowerupMessage(
+                        poweruptype='punch'
+                    )
+                )
+
+                players.actor.handlemessage(
+                    bs.PowerupMessage(
+                        poweruptype='shield'
+                    )
+                )
+
+            except:
+                pass
 
     else:
+
         try:
+
             player = int(arguments[0])
-            activity = bs.get_foreground_host_activity()
 
             node = activity.players[player].actor.node
 
-            if node.head_mesh != None:
-                node.head_mesh = None
-                node.handlemessage(bs.PowerupMessage(poweruptype='punch'))
-                node.handlemessage(bs.PowerupMessage(poweruptype='shield'))
+            node.head_mesh = None
+
+            activity.players[player].actor.handlemessage(
+                bs.PowerupMessage(
+                    poweruptype='punch'
+                )
+            )
+
+            activity.players[player].actor.handlemessage(
+                bs.PowerupMessage(
+                    poweruptype='shield'
+                )
+            )
+
         except:
             return
 
 
+# ================= CELEB =================
+
 def celeb(arguments):
+
     if arguments == [] or arguments == ['']:
         return
 
-    elif arguments[0] == 'all':
+    if arguments[0] == 'all':
+
         handlemsg_all(bs.CelebrateMessage())
 
     else:
+
         try:
+
             player = int(arguments[0])
-            handlemsg(player, bs.CelebrateMessage())
+
+            handlemsg(
+                player,
+                bs.CelebrateMessage()
+            )
+
         except:
             return
 
 
+# ================= SPAZ =================
+
 def spaz(arguments):
+
     if arguments == [] or arguments == ['']:
         return
 
-    return
+    return 
