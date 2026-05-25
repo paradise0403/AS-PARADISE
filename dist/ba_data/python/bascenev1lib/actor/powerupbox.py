@@ -9,6 +9,9 @@ from typing import TYPE_CHECKING, override
 
 import bascenev1 as bs
 from bascenev1lib.gameutils import SharedObjects
+import setting
+
+settings = setting.get_settings_data()
 
 if TYPE_CHECKING:
     from typing import Any, Sequence
@@ -26,8 +29,6 @@ class PowerupBoxFactory:
 
     def __init__(self) -> None:
 
-        from bascenev1 import get_default_powerup_distribution
-
         shared = SharedObjects.get()
         self._lastpoweruptype: str | None = None
 
@@ -42,6 +43,7 @@ class PowerupBoxFactory:
         self.tex_health = bs.gettexture('powerupHealth')
         self.tex_land_mines = bs.gettexture('powerupLandMines')
         self.tex_curse = bs.gettexture('powerupCurse')
+        self.tex_shield = bs.gettexture('powerupShield')
 
         # CUSTOM
         self.tex_teleport_bomb = bs.gettexture('aliColorMask')
@@ -79,30 +81,41 @@ class PowerupBoxFactory:
 
         self._powerupdist: list[str] = []
 
-        for powerup, freq in get_default_powerup_distribution():
+        key_map = {
+            'triple_bombs': 'triple_bombs',
+            'ice_bombs': 'ice_bombs',
+            'impact_bombs': 'impact_bombs',
+            'sticky_bombs': 'sticky_bombs',
+            'land_mines': 'land_mines',
+            'punch': 'punch',
+            'shield': 'shield',
+            'health': 'health',
+            'curse': 'curse'
+        }
 
-            # REMOVE SHIELD
-            if powerup == 'shield':
-                continue
+        qty = settings.get('powerupDistribution', {})
 
-            for _ in range(int(freq)):
+        for powerup, setting_name in key_map.items():
+            amount = int(qty.get(setting_name, 0))
+            for _ in range(amount):
                 self._powerupdist.append(powerup)
 
-        # CUSTOM POWERUPS
-        self._powerupdist.append('teleport_bomb')
-        self._powerupdist.append('teleport_bomb')
+        custom = settings.get('customPowerups', {})
 
-        self._powerupdist.append('headache')
-        self._powerupdist.append('headache')
+        if custom.get('enable', True):
+            for pwp in [
+                'teleport_bomb',
+                'headache',
+                'impact_curse',
+                'ice_impact',
+                'ice_mine'
+            ]:
+                amount = int(custom.get(pwp, 0))
+                for _ in range(amount):
+                    self._powerupdist.append(pwp)
 
-        self._powerupdist.append('impact_curse')
-        self._powerupdist.append('impact_curse')
-
-        self._powerupdist.append('ice_impact')
-        self._powerupdist.append('ice_impact')
-
-        self._powerupdist.append('ice_mine')
-        self._powerupdist.append('ice_mine')
+        if not self._powerupdist:
+            self._powerupdist.append('health')
  
     def get_random_powerup_type(self, forcetype=None, excludetypes=None):
 
@@ -198,6 +211,10 @@ class PowerupBox(bs.Actor):
         elif poweruptype == 'curse':
             tex = factory.tex_curse
             display_name = 'CURSE'
+
+        elif poweruptype == 'shield':
+            tex = factory.tex_shield
+            display_name = 'SHIELD'
 
         elif poweruptype == 'teleport_bomb':
             tex = factory.tex_teleport_bomb
