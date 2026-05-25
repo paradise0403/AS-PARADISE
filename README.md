@@ -75,11 +75,11 @@ Here you can ban players, mute them, or disable their kick votes.
 - New shop and coin system added.
 - New discord bot integration + dc to bs cmd added.
 - Rank System.
-- [Chat commands](https://github.com/imayushsaini/Bombsquad-Ballistica-Modded-Server/wiki/Chat-commands).
+- Chat commands
 - V2 Account with cloud console for server.
 - check clients ping , use /ping chat command to check ping of any player._ba.get_client_ping().
 - Hide player specs from cleints, chatcommand /hideid /showid .
-- [Easy role management](https://github.com/imayushsaini/Bombsquad-Ballistica-Modded-Server/wiki/Chat-commands#role-management-system) , create 1000 of roles as you wish add specific chat command to the role , give tag to role ..many more.
+- Easy role management, create 1000 of roles as you wish add specific chat command to the role , give tag to role ..many more.
 - Rejoin cooldown.
 - Leaderboard , top 3 rank players name on top right corner.
 - Restrict some player to start kick vote.
@@ -93,7 +93,7 @@ Here you can ban players, mute them, or disable their kick votes.
 - Team Chat, send msg starting with (,) comma to deliver it to team mates only.
 - In game popup chat , send msg starting with (.) Dot to send in game popup msg.
 - Custom Voting System , type end in chat to start end vote or sm , nv, dv.
-- support for [Ballisitca-web-stats](https://github.com/imayushsaini/ballistica-web-stats).
+- Fixed bugs + added new commands.
 - Integrated Discord bot to sync live stats(current players, chats , all logs) to discord.
 - Execute chat command remotely from discord.
 - Many New mini games and maps.
