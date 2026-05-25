@@ -141,16 +141,33 @@ def handle_buy_effect(arguments, client_id, account_id):
 
     # VALID EFFECTS LIST (same as your system)
     valid_effects = [
-        "spark", "sparkground",
-        "sweat", "sweatground",
+        "spark",
+        "sparkground",
+        "sweat",
+        "sweatground",
         "distortion",
         "glow",
-        "shine", "highlightshine", "rainbow",
+        "shine",
+        "highlightshine",
+        "rainbow",
         "scorch",
-        "ice", "iceground",
-        "slime", "metal", "splinter",
+        "ice",
+        "iceground",
+        "slime",
+        "metal",
+        "splinter",
         "fairydust",
-        "firespark",
+        "surrounder",
+        "fire",
+        "stars",
+        "new_rainbow",
+        "footprint",
+        "chispitas",
+        "darkmagic",
+        "colorfullspark",
+        "ring",
+        "brust",
+        "ringstars",
         "noeffect"
     ]
 
@@ -176,7 +193,17 @@ def handle_buy_effect(arguments, client_id, account_id):
         "metal": 1400,
         "splinter": 1350,
         "fairydust": 1600,
-        "firespark": 2500,
+        "surrounder": 2200,
+        "fire": 2500,
+        "stars": 2600,
+        "new_rainbow": 3000,
+        "footprint": 1800,
+        "chispitas": 3200,
+        "darkmagic": 4000,
+        "colorfullspark": 3500,
+        "ring": 2800,
+        "brust": 5000,
+        "ringstars": 5500,
         "noeffect": 0
     }
 
@@ -227,9 +254,6 @@ def show_main_shop(client_id):
         "\ue045 ------ SERVER SHOP ------ \ue045\n"
         "1. SHOP TAGS\n"
         "2. SHOP EFFECTS\n"
-        "3. SHOP COMMANDS\n"
-        "4. SHOP ROLES\n"
-        "5. SHOP SERVER\n"
         "Type: /shop <category_name>"
     )
     send(msg, client_id)
@@ -251,25 +275,35 @@ def show_tags_shop(client_id):
 def show_effects_shop(client_id):
     send = get_send_func()
     msg = (
-        "\ue043 ----- EFFECTS ----- \ue043\n"
-        "1. Spark - 800 \ue01d\n"
-        "2. Spark Ground - 850 \ue01d\n"
-        "3. Sweat - 900 \ue01d\n"
-        "4. Sweat Ground - 950 \ue01d\n"
-        "5. Distortion - 1200 \ue01d\n"
-        "6. Glow - 1500 \ue01d\n"
-        "7. Shine - 1100 \ue01d\n"
-        "8. Highlight Shine - 1150 \ue01d\n"
-        "9. Rainbow - 2000 \ue01d\n"
-        "10. Scorch - 1400 \ue01d\n"
-        "11. Ice - 1200 \ue01d\n"
-        "12. Ice Ground - 1250 \ue01d\n"
-        "13. Slime - 1300 \ue01d\n"
-        "14. Metal - 1400 \ue01d\n"
-        "15. Splinter - 1350 \ue01d\n"
-        "16. Fairy Dust - 1600 \ue01d\n"
-        "17. Fire Spark - 2500 \ue01d\n\n"
-        "\ue047 Pro Tip: Use /buyeffect <effect_name>\n"
+        "\ue043 ----- EFFECT SHOP ----- \ue043\n"
+        "spark - 800\n"
+        "sparkground - 850\n"
+        "sweat - 900\n"
+        "sweatground - 950\n"
+        "distortion - 1200\n"
+        "glow - 1500\n"
+        "shine - 1100\n"
+        "highlightshine - 1150\n"
+        "rainbow - 2000\n"
+        "scorch - 1400\n"
+        "ice - 1200\n"
+        "iceground - 1250\n"
+        "slime - 1300\n"
+        "metal - 1400\n"
+        "splinter - 1350\n"
+        "fairydust - 1600\n"
+        "surrounder - 2200\n"
+        "fire - 2500\n"
+        "stars - 2600\n"
+        "new_rainbow - 3000\n"
+        "footprint - 1800\n"
+        "chispitas - 3200\n"
+        "darkmagic - 4000\n"
+        "colorfullspark - 3500\n"
+        "ring - 2800\n"
+        "brust - 5000\n"
+        "ringstars - 5500\n\n"
+        "Use: /buyeffect <name>\n"
         "\ue048 Note: Effects are applied on next spawn."
     )
     send(msg, client_id)
