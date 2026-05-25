@@ -91,7 +91,20 @@ def handle_buy_tag(arguments, client_id, account_id):
     except:
         anim_id = 1
 
-    prices = {1:25, 2:45, 3:40, 4:50, 5:60}
+    prices = {
+    1: 25,
+    2: 45,
+    3: 40,
+    4: 50,
+    5: 60,
+    6: 75,
+    7: 80,
+    8: 90,
+    9: 100,
+    10: 120,
+    11: 130,
+    12: 140
+}
     total_cost = len(tag_text) * prices.get(anim_id, 25)
     print(f'total cost = {total_cost}')
     
@@ -260,16 +273,38 @@ def show_main_shop(client_id):
 
 def show_tags_shop(client_id):
     send = get_send_func()
+
     msg = (
-        "\ue043 ----- TAGS ----- \ue043\n"
-        "1. Standard Color Tag - 25 \ue01d/char\n"
-        "2. Red & Yellow Wave - 45 \ue01d/char\n"
-        "3. Smooth Color Wave - 40 \ue01d/char\n"
-        "4. Blink Letter Wave - 50 \ue01d/char\n"
-        "5. Rainbow Tag - 60 \ue01d/char\n\n"
-        "\ue047 Pro Tip: Use /buytag <text> <effect_num>\n"
-        "\ue048 Note: Tags are applied immediately!"
+        "\ue043 ===== TAG EFFECT SHOP ===== \ue043\n"
+
+        "\ue047 1 = RGB Flash Tag\n"
+        "   Price: 25 \ue01d per character\n"
+        "\ue047 2 = Red Yellow Wave\n"
+        "   Price: 45 \ue01d per character\n"
+        "\ue047 3 = Fade Blink Tag\n"
+        "   Price: 40 \ue01d per character\n"
+        "\ue047 4 = Fast Blink Tag\n"
+        "   Price: 50 \ue01d per character\n"
+        "\ue047 5 = Rainbow Wave\n"
+        "   Price: 60 \ue01d per character\n"
+        "\ue047 6 = Ultra Rainbow\n"
+        "   Price: 75 \ue01d per character\n"
+        "\ue047 7 = Golden Shine\n"
+        "   Price: 80 \ue01d per character\n"
+        "\ue047 8 = Neon Pulse\n"
+        "   Price: 90 \ue01d per character\n"
+        "\ue047 9 = Vertical Bounce\n"
+        "   Price: 100 \ue01d per character\n"
+        "\ue047 10 = India Flag Style\n"
+        "   Price: 120 \ue01d per character\n"
+        "\ue047 11 = Red Blue Motion\n"
+        "   Price: 130 \ue01d per character\n"
+        "\ue047 12 = White Yellow Glow\n"
+        "   Price: 140 \ue01d per character\n"
+        "\ue046 Use: /buytag <text> <effect_id>\n"
+        "\ue048 Example: /buytag ASHX 6"
     )
+
     send(msg, client_id)
 
 def show_effects_shop(client_id):
