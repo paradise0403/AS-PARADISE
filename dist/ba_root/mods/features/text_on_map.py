@@ -3,6 +3,7 @@
 """ 
 Position Fixed: Watermark at Bottom-Left, Title at Top-Center
 Edited for ASHX SCRIPT 2026 - API 9 Optimized
+Staff: Luffy (Sky Blue), Electron (Yellow), Ghost (Grey)
 """
 
 import random
@@ -44,9 +45,9 @@ class textonmap:
             ("TOP 10 - EFFECTS + TAG", (1, 1, 1)),
             ("TOP 20 - TAG", (1, 1, 1)),
             ("JOIN DISCORD", (1, 1, 1)),
-            ("ðŸ”±WELCOME TO SERVERðŸ”±" , (1, 1, 0)),
+            ("🔱ASHX VS SEHU🔱" , (1, 1, 0)),
             ("BY TEAM PARADISE" , (1, 0, 1)),
-            ("â£ï¸AS PARADISEâ£ï¸" , (0, 1, 1))
+            ("❣️AS PARADISE❣️" , (0, 1, 1))
         ]
         self._feature_index = 0
 
@@ -59,14 +60,52 @@ class textonmap:
         self.init_feature_cycle()
 
         if hasattr(_babase, "season_ends_in_days"):
-            if _babase.season_ends_in_days < 9:
+            if _babase.season_ends_in_days < 99:
                 self.season_reset(_babase.season_ends_in_days)
 
         if setti["leaderboard"]["enable"]:
             self.leaderBoard()
+            self.staff_cycle() # Start Official Staff Cycle
 
         bs.timer(0.016, self._animate, repeat=True)
         self.timer = bs.timer(8, babase.Call(self.highlights_), repeat=True)
+
+    # ================= STAFF SECTION =================
+    def staff_cycle(self):
+        # Create the "OFFICIAL STAFF" Title below Leaderboard
+        self.staff_title = bs.newnode('text', attrs={
+            'text': u"✨ OFFICIAL OGS ✨",
+            'flatness': 1.0, 'h_align': 'center', 'h_attach': 'right', 'v_attach': 'top',
+            'position': (-120, -185), 'scale': 0.6, 'color': (1, 1, 1)
+        })
+        
+        # Create the cycling name node
+        self.staff_node = bs.newnode('text', attrs={
+            'text': "", 'flatness': 1.0, 'h_align': 'center', 'h_attach': 'right', 'v_attach': 'top',
+            'position': (-120, -210), 'scale': 0.7, 'opacity': 0.0
+        })
+        
+        # Staff Names: Luffy, Electron, Ghost
+        self.staff_names = ["SEHU", "ODX", "NICK"] 
+        self.current_staff_index = 0
+        self.staff_timer = bs.timer(4.0, self._cycle_staff, repeat=True)
+        self._cycle_staff()
+
+    def _cycle_staff(self):
+        bs.animate(self.staff_node, 'opacity', {0.0: 1.0, 0.5: 0.0})
+        
+        def update_staff():
+            # Colors: Sky Blue, Yellow, Grey
+            colors = [(0.5, 0.8, 1.0), (1.0, 1.0, 0.0), (0.6, 0.6, 0.6)] 
+            
+            idx = self.current_staff_index
+            self.staff_node.text = self.staff_names[idx]
+            self.staff_node.color = colors[idx]
+            
+            bs.animate(self.staff_node, 'opacity', {0.0: 0.0, 0.5: 1.0})
+            self.current_staff_index = (self.current_staff_index + 1) % len(self.staff_names)
+            
+        bs.timer(0.5, update_staff)
 
     # ================= FEATURE TEXT =================
     def init_feature_cycle(self):
@@ -77,7 +116,7 @@ class textonmap:
             'v_attach': 'bottom',
             'h_attach': 'right',
             'scale': 0.65,
-            'position': (-25, 45),
+            'position': (-25, 40),
             'opacity': 0.0
         })
         self._feature_timer = bs.timer(4.0, self._update_feature_cycle, repeat=True)
@@ -99,7 +138,7 @@ class textonmap:
     def _animate(self):
         self._anim_time += 0.04
 
-        # ðŸ”´ BROOKLYN â†’ RED â†” GOLD
+        # 🔴 BROOKLYN → RED ↔ GOLD
         if hasattr(self, '_owner_name_nodes'):
             self.smooth_gradient(
                 self._owner_name_nodes,
@@ -108,7 +147,7 @@ class textonmap:
                 speed=1.3
             )
 
-        # ðŸ’œ ASHX â†’ NEON PURPLE â†” WHITE
+        # 💜 ASHX → NEON PURPLE ↔ WHITE
         if hasattr(self, '_script_name_nodes'):
             self.smooth_gradient(
                 self._script_name_nodes,
@@ -132,7 +171,7 @@ class textonmap:
 
     # ================= CLAY TEXT =================
     def clay_text(self):
-        self.display_text = u"ðŸ”± âœ¨ SEHU & ASHX âœ¨ ðŸ”±"
+        self.display_text = u"🔱 ✨ AS PARADISE ✨ 🔱"
         self.display_position = (0, 200)
         scale_val = 0.4
         spacing = 20
@@ -173,7 +212,7 @@ class textonmap:
         })
 
         bs.newnode('text', attrs={
-            'text': u" ðŸ‘‘ OWNER: ",
+            'text': u" 👑 OWNER: ",
             'flatness': 1.0, 'h_align': 'left',
             'v_attach': 'bottom', 'h_attach': 'left',
             'scale': 0.6, 'position': (start_x + 5, base_y + 15),
@@ -194,7 +233,7 @@ class textonmap:
             self._owner_name_nodes.append(n)
 
         bs.newnode('text', attrs={
-            'text': u" ðŸ“ SCRIPT BY:",
+            'text': u" 📝 SCRIPT BY:",
             'flatness': 1.0, 'h_align': 'left',
             'v_attach': 'bottom', 'h_attach': 'left',
             'scale': 0.6,
@@ -217,7 +256,7 @@ class textonmap:
 
     # ================= REST SAME =================
     def bottom_text(self):
-        text = "JOIN DISCORD FOR FREE TAG :)"
+        text = "Thanks For Playing In Our Server"
         spacing = 12
         base_y = 20
         self._bottom_text = []
@@ -267,7 +306,7 @@ class textonmap:
         bs.newnode('text', attrs={
             'text': "Next : " + text,
             'flatness': 1.0, 'h_align': 'right', 'v_attach': 'bottom', 'h_attach': 'right',
-            'scale': 0.7, 'position': (-25, 16), 'color': (0.5, 0.5, 0.5)
+            'scale': 0.7, 'position': (-25, 16), 'color': (1.0, 1.0, 1.0)
         })
 
     def highlights_(self):
@@ -285,9 +324,9 @@ class textonmap:
     def season_reset(self, text):
         bs.newnode('text', attrs={
             'text': "Season ends in: " + str(text) + " days",
-            'flatness': 2.0, 'h_align': 'right', 'v_attach': 'bottom', 'h_attach': 'right',
-            'scale': 0.5, 'position': (-25, 75), # Shifted up to avoid overlap
-            'color': (0.6, 0.5, 0.7)
+            'flatness': 5.0, 'h_align': 'right', 'v_attach': 'bottom', 'h_attach': 'right',
+            'scale': 0.7, 'position': (-25, 65), # Shifted up to avoid overlap
+            'color': (1.0, 1.0, 1.0)
         })
 
     def restart_msg(self):
@@ -298,3 +337,4 @@ class textonmap:
                 'scale': 0.5, 'position': (-25, 90), # Shifted up
                 'color': (1, 0.5, 0.7)
             })
+ 
