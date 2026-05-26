@@ -9,7 +9,7 @@
    "enable_default_kick_voting":true,
    "port":43210,
    "max_party_size":16,
-   "session_max_players_override":8,
+   "session_max_players_override":16,
    "session_type":"ffa",
    "playlist_code":590934,
    "playlist_shuffle":true,
