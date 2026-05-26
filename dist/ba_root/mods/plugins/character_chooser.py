@@ -69,9 +69,9 @@ def __init__(self, vpos: float, sessionplayer: bs.SessionPlayer,
 
     app = babase.app
 
-    self.bakwas_chars = ["Lee", "Todd McBurton", "Zola", "Butch", "Witch",
+    self.bakwas_chars = ["Lee", "Todd McBurton", "Butch", "Witch",
                          "warrior",
-                         "Middle-Man", "Alien", "OldLady", "Gladiator",
+                         "Middle-Man", "Alien", "Gladiator",
                          "Wrestler", "Gretel", "Robot"]
 
     # Load available player profiles either from the local config or
