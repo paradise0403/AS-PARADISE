@@ -140,9 +140,6 @@ def bootstraping():
     _thread.start_new_thread(notification_manager.dump_cache, ())
 
     # import plugins
-    if settings["elPatronPowerups"]["enable"]:
-        from plugins import elPatronPowerups
-        elPatronPowerups.enable()
     if settings["mikirogQuickTurn"]["enable"]:
         from plugins import wavedash  # pylint: disable=unused-import
     if settings["colorful_explosions"]["enable"]:

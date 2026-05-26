@@ -1,11 +1,15 @@
 {
     "Anti-IdRevealer": false,
+
     "ChatCommands": {
         "BrodcastCommand": true
     },
+
     "HostDeviceName": "Api 9",
     "HostName": "AS PARADISE",
+
     "KickVoteMsgType": "chat",
+
     "ScoreScreenAnnouncement": {
         "enable": true,
         "msg": [
@@ -14,19 +18,25 @@
             "type /daily to get free coins"
         ]
     },
+
     "ShowKickVoteStarterName": true,
     "StumbledScoreScreen": true,
+
     "WarnCooldownMinutes": 30,
+
     "afk_remover": {
         "enable": false,
         "ingame_idle_time_in_secs": 60,
         "kick_idle_from_lobby": false,
         "lobby_idle_time_in_secs": 10
     },
+
     "afterWarnKickMsg": "Enough warnings, Goodbye have a nice day :)",
+
     "allowInGameChat": true,
     "allowTeamChat": true,
     "allowVotes": true,
+
     "autoNightMode": {
         "enable": false,
         "endTime": "06:00",
@@ -34,31 +44,63 @@
         "fireflies_random_color": false,
         "startTime": "18:30"
     },
+
     "autoTeamBalance": true,
+
     "ballistica_web": {
         "discord_link": "https://discord.gg/UN42ck7FCY",
         "enable": false,
         "server_password": "ashx09"
     },
+
     "character_chooser": {
         "enable": true
     },
+
     "colorful_explosions": {
         "enable": true
     },
+
     "colorfullMap": false,
+
     "contributeData": true,
+
     "coopModeWithLessPlayers": {
         "enable": false,
         "minPlayerToExitCoop": 3
     },
+
     "custom_characters": {
         "enable": true
     },
+
+    "customPowerups": {
+        "enable": true,
+
+        "teleport_bomb": 2,
+        "headache": 2,
+        "impact_curse": 2,
+        "ice_impact": 2,
+        "ice_mine": 2
+    },
+
+    "powerupDistribution": {
+        "triple_bombs": 3,
+        "ice_bombs": 3,
+        "impact_bombs": 3,
+        "sticky_bombs": 3,
+        "land_mines": 2,
+        "punch": 0,
+        "shield": 0,
+        "health": 1,
+        "curse": 1
+    },
+
     "discordWebHook": {
         "enable": false,
         "webhookURL": "https://discord.com/api/webhooks/82649239/e7s0zyBJIuczXL7_CGSO5WM"
     },
+
     "discordbot": {
         "enable": true,
         "liveChat": true,
@@ -67,63 +109,14 @@
         "token": "TOKEN",
         "prefix": "a!",
         "cmd_prefix": "as",
+
         "adminUsers": [
             1254252895914688578,
             1248220618936156260,
             1234046707616972884
         ]
     },
-    "elPatronPowerups": {
-        "Quantity": {
-            "Curse": 1,
-            "Fire Bombs": 0,
-            "Fly Bombs": 0,
-            "Goodbye": 0,
-            "Healing Damage": 1,
-            "Health": 1,
-            "Ice Bombs": 3,
-            "Ice Man": 0,
-            "Impact Bombs": 3,
-            "Impairment Bombs": 0,
-            "Mine Bombs": 2,
-            "Punch": 0,
-            "Shield": 0,
-            "Speed": 0,
-            "Sticky Bombs": 3,
-            "Tank Shield": 0,
-            "Triple": 3
-        },
-        "enable": true,
-        "settings": {
-            "Healing Damage PTG": 72,
-            "Powers Gravity": true,
-            "Powerup Name": false,
-            "Powerup Scale": 1,
-            "Powerup Style": "Auto",
-            "Powerup Time": false,
-            "Powerup With Shield": false,
-            "Powerups": {
-                "Curse": 1,
-                "Fire Bombs": 0,
-                "Fly Bombs": 0,
-                "Goodbye": 0,
-                "Healing Damage": 1,
-                "Health": 1,
-                "Ice Bombs": 3,
-                "Ice Man": 0,
-                "Impact Bombs": 3,
-                "Impairment Bombs": 0,
-                "Mine Bombs": 2,
-                "Punch": 0,
-                "Shield": 0,
-                "Speed": 0,
-                "Sticky Bombs": 3,
-                "Tank Shield": 0,
-                "Triple": 3
-            },
-            "Tank Shield PTG": 96
-        }
-    },
+
     "enableHitTexts": true,
     "enableTagAnimation": true,
     "enableTop5effects": true,
@@ -132,34 +125,45 @@
     "enablerank": true,
     "enablestats": true,
     "enabletags": true,
+
     "firstTimeJoinMsg": "Welcome to the as paradise,we r saving all your account details and chats",
+
     "leaderboard": {
         "barsBehindName": true,
         "enable": true
     },
+
     "maxAccountPerIP": 3,
     "maxPlayersPerDevice": 2,
     "maxWarnCount": 2,
+
     "mfa": {
         "enable": true,
+
         "enforce_for_accounts": [
             "HeySmoothy",
             "test"
         ],
+
         "enforce_for_all_players": false
     },
+
     "mikirogQuickTurn": {
         "enable": false
     },
+
     "minAgeToChatInHours": 78,
     "minAgeToJoinInHours": 24,
+
     "newResultBoard": true,
+
     "playermod": {
-        "default_bomb": "sticky",
+        "default_bomb": "normal",
         "default_bomb_count": 2,
         "default_boxing_gloves": true,
         "default_shield": false
     },
+
     "playlists": {
         "elim": 412172,
         "epic": 412173,
@@ -169,28 +173,64 @@
         "soccer": 412160,
         "team": 12345
     },
+
+    "quizSystem": {
+        "enable": true,
+        "firstQuestionDelay": 5,
+        "questionDelay": 30,
+        "rewardCoins": 10,
+
+        "questions": {
+            "2 + 2 ?": ["4"],
+            "5 x 5 ?": ["25"],
+            "10 + 10 ?": ["20"],
+            "7 x 8 ?": ["56"],
+            "What is the capital of India?": ["delhi", "new delhi"],
+            "What is the pposite of day?": ["night"],
+            "What is the color of the sky?": ["blue"],
+            "How many days in a week?": ["7", "seven"],
+            "Founder of AS PARADISE?": ["ashx", "ash"],
+            "BombSquad is a game or app?": ["game"],
+            "What comes after Monday?": ["tuesday"],
+            "How many seconds in 1 minute?": ["60"],
+            "Which planet is known as red planet?": ["mars"]
+        }
+    },
+
     "regularWelcomeMsg": "Welcome Back mate",
+
     "sameCharacterForTeam": false,
+
     "statsResetAfterDays": 31,
+
     "textonmap": {
-        "bottom left watermark": "Owner : Ashx\nEditor : Ashx\nAshx first api 9",
+
+        "bottom left watermark": "",
+
         "center highlights": {
+
             "color": [
                 1,
                 0,
                 0
             ],
+
             "msg": [
                 "join discord for free tag",
                 "start msg with prefix .(dot) to send in game popup msg",
                 "start msg with prefix ,(comma) to send msg to teammates",
                 "type /daily to get free coins"
             ],
+
             "randomColor": true
         },
-        "top watermark": "I am creating my own script\njoin my discord server to get notification when script will public"
+
+        "top watermark": ""
     },
+
     "useV2Account": false,
+
     "warnMsg": "WARNING !!!",
+
     "whitelist": false
-}
+} 
