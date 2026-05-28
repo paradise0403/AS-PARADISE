@@ -4,7 +4,6 @@
 import bascenev1 as bs
 import setting
 from bascenev1lib.actor.popuptext import PopupText
-
 our_settings = setting.get_settings_data()
 
 
@@ -36,9 +35,10 @@ def handle_hit(mag, pos):
 class hit_message(bs.HitMessage):
     def __init__(self, *args, **kwargs):
         hit_type = kwargs["hit_type"]
+        # old punch effect
         if hit_type == "punch":
             handle_hit(kwargs['magnitude'], kwargs['pos'])
+        # original HitMessage
         super().__init__(*args, **kwargs)
-
 
 bs.HitMessage = hit_message
